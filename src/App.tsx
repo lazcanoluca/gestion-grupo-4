@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
+import { WeeklyCalendar } from './components/WeeklyCalendar'
 
 // Simple mock API function
 const mockLogin = async (padron: string): Promise<{ padron: string }> => {
@@ -105,8 +106,12 @@ function App() {
       </header>
 
       {/* Main content area - calendar and other stuff will go here */}
-      <main className="px-4 sm:px-6 py-8">
-        {/* Content goes here */}
+      <main className="h-[calc(100vh-73px)]">
+        {loggedInUser && (
+          <div className="h-full">
+            <WeeklyCalendar />
+          </div>
+        )}
       </main>
 
       {/* Login Modal - shown when not logged in */}
