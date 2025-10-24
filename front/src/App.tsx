@@ -5,13 +5,26 @@ import { WeeklyCalendar } from './components/WeeklyCalendar'
 // Simple mock API function
 const mockLogin = async (padron: string): Promise<{ padron: string }> => {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800))
+  // await new Promise(resolve => setTimeout(resolve, 800))
 
-  if (!padron || padron.length < 4) {
-    throw new Error('Padrón inválido')
+  // if (!padron || padron.length < 4) {
+  //   throw new Error('Padrón inválido')
+  // }
+
+  // return { padron }
+  
+  const response = await fetch('http://localhost:5000/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ padron })
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Error al iniciar sesión')
   }
-
-  return { padron }
+  
+  return response.json()
 }
 
 function App() {
