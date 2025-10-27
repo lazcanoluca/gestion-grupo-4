@@ -4,26 +4,17 @@ import { WeeklyCalendar } from './components/WeeklyCalendar'
 
 // Simple mock API function
 const mockLogin = async (padron: string): Promise<{ padron: string }> => {
-  // Simulate network delay
-  // await new Promise(resolve => setTimeout(resolve, 800))
-
-  // if (!padron || padron.length < 4) {
-  //   throw new Error('Padrón inválido')
-  // }
-
-  // return { padron }
-  
   const response = await fetch('http://localhost:5000/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ padron })
   })
-  
+
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.error || 'Error al iniciar sesión')
   }
-  
+
   return response.json()
 }
 
@@ -33,6 +24,9 @@ function App() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [siuInput, setSiuInput] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -59,20 +53,19 @@ function App() {
     setError(null)
   }
 
-  // Close dropdown when clicking outside
+  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative overflow-hidden">
       {/* Top bar */}
       <header className="bg-white/80 backdrop-blur-sm shadow-md border-b border-gray-200">
         <div className="px-4 sm:px-6 py-4 flex justify-between items-center">
@@ -87,38 +80,48 @@ function App() {
             </h1>
           </div>
 
-          {/* User avatar (only shown when logged in) */}
           {loggedInUser && (
-            <div className="relative" ref={dropdownRef}>
+            <div className="flex items-center gap-4">
+              {/* Botón para abrir menú lateral */}
               <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 cursor-pointer"
+                onClick={() => setIsSideMenuOpen(true)}
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
               >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
+                Menú
               </button>
 
-              {/* Dropdown menu */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Cerrar sesión
-                  </button>
-                </div>
-              )}
+              {/* Avatar del usuario */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  aria-label="Menú de usuario"
+                  className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 cursor-pointer"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
       </header>
 
-      {/* Main content area - calendar and other stuff will go here */}
+      {/* Contenido principal */}
       <main className="h-[calc(100vh-73px)]">
         {loggedInUser && (
           <div className="h-full">
@@ -127,7 +130,7 @@ function App() {
         )}
       </main>
 
-      {/* Login Modal - shown when not logged in */}
+      {/* Modal de login */}
       {!loggedInUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
@@ -186,9 +189,79 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* --- Panel lateral derecho --- */}
+      {isSideMenuOpen && (
+        <div className="fixed inset-0 bg-black/50 flex justify-end z-40">
+          <div className="bg-white w-80 h-full shadow-2xl p-6 relative animate-slide-left">
+            <button
+              onClick={() => setIsSideMenuOpen(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Menú</h2>
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md"
+            >
+              Importar materias
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- Modal de “Importar materias del SIU” --- */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Importar materias del SIU
+            </h2>
+
+            <p className="text-gray-700 mb-4 text-sm">
+              Se debe importar la oferta de comisiones en el SIU:<br />
+              Para ello ingresar a <strong>reportes → Oferta de comisiones</strong>
+            </p>
+
+            <input
+              type="text"
+              value={siuInput}
+              onChange={(e) => setSiuInput(e.target.value)}
+              placeholder="Pegá aquí la oferta de comisiones del SIU..."
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base mb-6"
+            />
+
+            <div className="flex justify-between gap-4">
+              {/* Botón: Cargar materias */}
+              <button
+                disabled={!siuInput.trim()}
+                onClick={() => {
+                  console.log('Importar:', siuInput)
+                  setShowImportModal(false)
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-all shadow-md ${
+                  siuInput.trim()
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Cargar materias
+              </button>
+
+              {/* Botón: Seguir sin importar */}
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all font-medium text-gray-700"
+              >
+                Seguir sin importar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 export default App
-
