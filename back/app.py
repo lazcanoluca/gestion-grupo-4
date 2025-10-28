@@ -4,6 +4,9 @@ import sqlite3
 from datetime import datetime
 import os
 
+# Importar el blueprint del SIU
+from siu_routes import siu_bp
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend communication
 
@@ -16,10 +19,11 @@ def get_db():
     return conn
 
 def init_db():
-    """Initialize the database with users table"""
+    """Initialize the database with all tables"""
     conn = get_db()
     cursor = conn.cursor()
     
+    # Tabla de usuarios
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,33 +33,58 @@ def init_db():
         )
     ''')
     
+    # 🔥 NUEVA: Tabla de cursos
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cursos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT UNIQUE NOT NULL,
+            materia_nombre TEXT NOT NULL,
+            materia_codigo TEXT NOT NULL,
+            periodo TEXT NOT NULL,
+            docentes TEXT,
+            clases_json TEXT NOT NULL,
+            padron TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (padron) REFERENCES users(padron)
+        )
+    ''')
+    
+    # Índices para mejorar búsquedas
+    cursor.execute('''
+        CREATE INDEX IF NOT EXISTS idx_cursos_materia 
+        ON cursos(materia_codigo)
+    ''')
+    
+    cursor.execute('''
+        CREATE INDEX IF NOT EXISTS idx_cursos_padron 
+        ON cursos(padron)
+    ''')
+    
     conn.commit()
     conn.close()
+
+# Registrar el blueprint del SIU
+app.register_blueprint(siu_bp, url_prefix='/api/siu')
 
 @app.route('/api/login', methods=['POST'])
 def login():
     """
     Login/Register user with just padron (implicit registration)
-    If padron exists -> login
-    If padron doesn't exist -> register and login
     """
     try:
         data = request.get_json()
         padron = data.get('padron', '').strip()
         
-        # Validation
         if not padron or len(padron) < 4:
             return jsonify({'error': 'Padrón debe tener al menos 4 caracteres'}), 400
         
         conn = get_db()
         cursor = conn.cursor()
         
-        # Check if user exists
         cursor.execute('SELECT * FROM users WHERE padron = ?', (padron,))
         user = cursor.fetchone()
         
         if user:
-            # User exists - update last login
             cursor.execute(
                 'UPDATE users SET last_login = ? WHERE padron = ?',
                 (datetime.now(), padron)
@@ -64,7 +93,6 @@ def login():
             message = 'Login exitoso'
             is_new_user = False
         else:
-            # User doesn't exist - create new user
             try:
                 cursor.execute(
                     'INSERT INTO users (padron) VALUES (?)',
@@ -74,7 +102,6 @@ def login():
                 message = 'Usuario registrado exitosamente'
                 is_new_user = True
             except sqlite3.IntegrityError:
-                # Race condition: user was created between check and insert
                 message = 'Login exitoso'
                 is_new_user = False
         
@@ -91,7 +118,7 @@ def login():
 
 @app.route('/api/users', methods=['GET'])
 def get_users():
-    """Get all users (for testing/admin purposes)"""
+    """Get all users"""
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -135,7 +162,7 @@ def get_user(padron):
 
 @app.route('/api/user/<padron>', methods=['DELETE'])
 def delete_user(padron):
-    """Delete a user (for testing purposes)"""
+    """Delete a user"""
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -174,7 +201,7 @@ def get_stats():
         ''')
         today = cursor.fetchone()['today']
         
-        # Active users today (logged in today)
+        # Active users today
         cursor.execute('''
             SELECT COUNT(*) as active 
             FROM users 
@@ -182,12 +209,17 @@ def get_stats():
         ''')
         active = cursor.fetchone()['active']
         
+        # 🔥 NUEVO: Total de cursos
+        cursor.execute('SELECT COUNT(*) as total FROM cursos')
+        total_cursos = cursor.fetchone()['total']
+        
         conn.close()
         
         return jsonify({
             'total_users': total,
             'new_users_today': today,
-            'active_users_today': active
+            'active_users_today': active,
+            'total_cursos': total_cursos
         }), 200
         
     except Exception as e:
@@ -210,6 +242,8 @@ if __name__ == '__main__':
         print('Database created successfully!')
     else:
         print('Database already exists')
+        # Asegurarse de que la tabla cursos exista
+        init_db()
     
     print('\n' + '='*50)
     print('🚀 Flask Backend Started')
@@ -218,6 +252,9 @@ if __name__ == '__main__':
     print('📍 Health: http://localhost:5000/api/health')
     print('📍 Stats:  http://localhost:5000/api/stats')
     print('📍 Users:  http://localhost:5000/api/users')
+    print('📍 Parse SIU: http://localhost:5000/api/siu/parse-siu')
+    print('📍 Ver cursos: http://localhost:5000/api/siu/cursos')
+    print('📍 Ver materias: http://localhost:5000/api/siu/materias')
     print('='*50 + '\n')
     
     app.run(debug=True, port=5000)

@@ -27,6 +27,11 @@ function App() {
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [siuInput, setSiuInput] = useState('')
+  
+  // Estados para la importación del SIU
+  const [isImporting, setIsImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -51,6 +56,47 @@ function App() {
     setLoggedInUser(null)
     setIsDropdownOpen(false)
     setError(null)
+  }
+
+  // Función para manejar la importación del SIU
+  const handleImportSiu = async () => {
+    if (!siuInput.trim()) return
+    
+    setIsImporting(true)
+    setImportError(null)
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/siu/parse-siu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texto: siuInput })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Error al procesar los datos del SIU')
+      }
+      
+      console.log('✅ Datos parseados:', data.data)
+      console.log('📊 Estadísticas:', data.stats)
+      
+      // Aquí puedes guardar los datos en el estado de tu app
+      // setMaterias(data.data) // por ejemplo
+      
+      alert(`✅ ¡Importación exitosa!\n\n` +
+            `Periodos: ${data.stats.periodos}\n` +
+            `Materias: ${data.stats.total_materias}\n` +
+            `Cursos: ${data.stats.total_cursos}`)
+      
+      setShowImportModal(false)
+      setSiuInput('')
+      
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Error al importar')
+    } finally {
+      setIsImporting(false)
+    }
   }
 
   // Cerrar dropdown al hacer clic fuera
@@ -190,7 +236,7 @@ function App() {
         </div>
       )}
 
-      {/* --- Panel lateral derecho --- */}
+      {/* Panel lateral derecho */}
       {isSideMenuOpen && (
         <div className="fixed inset-0 bg-black/50 flex justify-end z-40">
           <div className="bg-white w-80 h-full shadow-2xl p-6 relative animate-slide-left">
@@ -202,59 +248,80 @@ function App() {
             </button>
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Menú</h2>
             <button
-              onClick={() => setShowImportModal(true)}
+              onClick={() => {
+                setShowImportModal(true)
+                setIsSideMenuOpen(false)
+              }}
               className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md"
             >
-              Importar materias
+              Importar materias del SIU
             </button>
           </div>
         </div>
       )}
 
-      {/*  Modal de “Importar materias del SIU”  */}
+      {/* Modal de "Importar materias del SIU" */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md text-center">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Importar materias del SIU
             </h2>
 
             <p className="text-gray-700 mb-4 text-sm">
-              Se debe importar la oferta de comisiones en el SIU:<br />
-              Para ello ingresar a <strong>reportes → Oferta de comisiones</strong>
+              Ingresá a <strong>Reportes → Oferta de comisiones</strong> en el SIU,
+              copiá todo el texto y pegalo aquí.
             </p>
 
-            <input
-              type="text"
+            <textarea
               value={siuInput}
               onChange={(e) => setSiuInput(e.target.value)}
               placeholder="Pegá aquí la oferta de comisiones del SIU..."
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base mb-6"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-base mb-4 h-32 resize-none"
+              disabled={isImporting}
             />
+
+            {importError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+                {importError}
+              </div>
+            )}
 
             <div className="flex justify-between gap-4">
               {/* Botón: Cargar materias */}
               <button
-                disabled={!siuInput.trim()}
-                onClick={() => {
-                  console.log('Importar:', siuInput)
-                  setShowImportModal(false)
-                }}
-                className={`px-4 py-2 rounded-lg font-medium transition-all shadow-md ${
-                  siuInput.trim()
+                disabled={!siuInput.trim() || isImporting}
+                onClick={handleImportSiu}
+                className={`px-4 py-2 rounded-lg font-medium transition-all shadow-md flex items-center gap-2 ${
+                  siuInput.trim() && !isImporting
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                Cargar materias
+                {isImporting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Procesando...
+                  </>
+                ) : (
+                  'Cargar materias'
+                )}
               </button>
 
-              {/* Botón: Seguir sin importar */}
+              {/* Botón: Cancelar */}
               <button
-                onClick={() => setShowImportModal(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all font-medium text-gray-700"
+                onClick={() => {
+                  setShowImportModal(false)
+                  setSiuInput('')
+                  setImportError(null)
+                }}
+                disabled={isImporting}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Seguir sin importar
+                Cancelar
               </button>
             </div>
           </div>
