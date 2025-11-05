@@ -62,12 +62,35 @@ export function parseSIU(rawdata) {
       let cursoMatch;
       
       while ((cursoMatch = cursosPattern.exec(materiaFullText)) !== null) {
-        const comision = cursoMatch[1].trim();
+        const comisionRaw = cursoMatch[1].trim();
         const docentes = cursoMatch[2].trim().replace(/\(.*?\)/g, "").trim();
         const clasesText = cursoMatch[3];
         
-        const cursoCodigo = `${materiaCodigo}-${comision}`;
+        // 🔥 ARREGLO: Parsear correctamente la comisión
+        // Formato: "CURSO: 02-Buchwald" o "CURSO: 1" o "02-Buchwald" o "1"
+        let numeroCurso = comisionRaw;
+        let nombreCatedra = null;
+        
+        // Si tiene "CURSO:" lo sacamos
+        let comision = comisionRaw.replace(/^CURSO:\s*/i, '').trim();
+        
+        // Si tiene guión, separamos número de nombre
+        if (comision.includes('-')) {
+          const parts = comision.split('-');
+          numeroCurso = parts[0].trim();
+          nombreCatedra = parts.slice(1).join('-').trim(); // Por si hay más guiones
+        } else {
+          numeroCurso = comision;
+          nombreCatedra = null;
+        }
+        
+        // Limpiar ceros a la izquierda: "02" -> "2"
+        numeroCurso = numeroCurso.replace(/^0+/, '') || '0';
+        
+        const cursoCodigo = `${materiaCodigo}-${numeroCurso}`;
         console.error(`    Found curso: ${cursoCodigo}`);
+        console.error(`      Numero: ${numeroCurso}`);
+        console.error(`      Catedra: ${nombreCatedra || 'N/A'}`);
         console.error(`      Docentes: ${docentes}`);
         console.error(`      Clases text length: ${clasesText.length}`);
 
@@ -135,6 +158,8 @@ export function parseSIU(rawdata) {
         periodo.cursos.push({
           materia: materiaCodigo,
           codigo: cursoCodigo,
+          numero: numeroCurso,
+          catedra: nombreCatedra,
           docentes: docentes,
           clases,
         });
