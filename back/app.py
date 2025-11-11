@@ -6,6 +6,7 @@ import os
 
 # Importar el blueprint del SIU
 from siu_routes import siu_bp
+from scheduler_routes import scheduler_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -112,6 +113,9 @@ def init_db():
 
 # Registrar el blueprint del SIU
 app.register_blueprint(siu_bp, url_prefix='/api/siu')
+
+# Registrar el blueprint del scheduler
+app.register_blueprint(scheduler_bp, url_prefix='/api/scheduler')
 
 @app.route('/api/login', methods=['POST'])
 def login():

@@ -1,0 +1,193 @@
+from typing import List, Dict, Any
+from itertools import combinations
+import sqlite3
+
+def get_db():
+    conn = sqlite3.connect('scheduler.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
+    """Obtiene todos los datos de un curso desde la BD"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Obtener info del curso y materia
+    cursor.execute('''
+        SELECT 
+            c.codigo, c.numero_curso, c.catedra, c.periodo,
+            m.codigo as materia_codigo, m.nombre as materia_nombre
+        FROM cursos c
+        JOIN materias m ON c.materia_codigo = m.codigo
+        WHERE c.codigo = ?
+    ''', (curso_codigo,))
+    
+    curso = cursor.fetchone()
+    if not curso:
+        conn.close()
+        return None
+    
+    # Obtener clases
+    cursor.execute('''
+        SELECT dia, hora_inicio, hora_fin, tipo
+        FROM clases
+        WHERE curso_codigo = ?
+        ORDER BY dia, hora_inicio
+    ''', (curso_codigo,))
+    clases = [dict(row) for row in cursor.fetchall()]
+    
+    # Obtener docentes
+    cursor.execute('''
+        SELECT docente_nombre
+        FROM curso_docentes
+        WHERE curso_codigo = ?
+    ''', (curso_codigo,))
+    docentes = [row['docente_nombre'] for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        'codigo': curso['codigo'],
+        'numero_curso': curso['numero_curso'],
+        'catedra': curso['catedra'],
+        'periodo': curso['periodo'],
+        'materia': {
+            'codigo': curso['materia_codigo'],
+            'nombre': curso['materia_nombre']
+        },
+        'clases': clases,
+        'docentes': docentes
+    }
+
+def clases_se_solapan(clase1: Dict, clase2: Dict) -> bool:
+    """
+    Verifica si dos clases se solapan en horario.
+    Cada clase tiene: dia (0-6), hora_inicio (HH:MM), hora_fin (HH:MM)
+    """
+    # Si son días diferentes, no se solapan
+    if clase1['dia'] != clase2['dia']:
+        return False
+    
+    # Convertir horarios a minutos desde medianoche para comparar
+    def hora_a_minutos(hora_str: str) -> int:
+        h, m = map(int, hora_str.split(':'))
+        return h * 60 + m
+    
+    inicio1 = hora_a_minutos(clase1['hora_inicio'])
+    fin1 = hora_a_minutos(clase1['hora_fin'])
+    inicio2 = hora_a_minutos(clase2['hora_inicio'])
+    fin2 = hora_a_minutos(clase2['hora_fin'])
+    
+    # Se solapan si hay intersección en los rangos
+    return not (fin1 <= inicio2 or fin2 <= inicio1)
+
+def cursos_se_solapan(curso1: Dict, curso2: Dict) -> bool:
+    """
+    Verifica si dos cursos tienen alguna clase que se solape
+    """
+    for clase1 in curso1['clases']:
+        for clase2 in curso2['clases']:
+            if clases_se_solapan(clase1, clase2):
+                return True
+    return False
+
+def agrupar_cursos_por_materia(cursos: List[Dict]) -> Dict[str, List[Dict]]:
+    """
+    Agrupa cursos por materia.
+    Retorna: {materia_codigo: [lista de cursos de esa materia]}
+    """
+    materias = {}
+    for curso in cursos:
+        materia_codigo = curso['materia']['codigo']
+        if materia_codigo not in materias:
+            materias[materia_codigo] = []
+        materias[materia_codigo].append(curso)
+    return materias
+
+def generar_planes(codigos_cursos: List[str], max_planes: int = 1000) -> List[List[Dict]]:
+    """
+    Genera todas las combinaciones posibles de cursos que cumplan:
+    1. No se solapen horariamente
+    2. A lo sumo un curso por materia
+    
+    Args:
+        codigos_cursos: Lista de códigos de cursos seleccionados por el usuario
+        max_planes: Límite máximo de planes a generar (para evitar explosión combinatoria)
+        
+    Returns:
+        Lista de planes válidos (cada plan es una lista de cursos)
+    """
+    # 1. Obtener datos completos de todos los cursos
+    cursos_datos = []
+    for codigo in codigos_cursos:
+        datos = obtener_datos_curso(codigo)
+        if datos:
+            cursos_datos.append(datos)
+    
+    if not cursos_datos:
+        return []
+    
+    # 2. Agrupar por materia
+    # parece que no hace falta
+    cursos_por_materia = agrupar_cursos_por_materia(cursos_datos)
+    
+    # 3. Generar todos los subconjuntos posibles de cursos
+    # (desde 1 curso hasta todos los cursos)
+    planes_validos = []
+    
+    # Iterar sobre todos los tamaños posibles de combinaciones
+    for tamanio in range(1, len(cursos_datos) + 1):
+        # Si ya encontramos suficientes planes, parar
+        if len(planes_validos) >= max_planes:
+            break
+            
+        # Generar todas las combinaciones de ese tamaño
+        for combinacion in combinations(cursos_datos, tamanio):
+            # Si ya encontramos suficientes planes, parar
+            if len(planes_validos) >= max_planes:
+                break
+            
+            # Verificar regla 2: a lo sumo un curso por materia
+            materias_en_plan = {}
+            valido_materias = True
+            for curso in combinacion:
+                materia_codigo = curso['materia']['codigo']
+                if materia_codigo in materias_en_plan:
+                    valido_materias = False
+                    break
+                materias_en_plan[materia_codigo] = curso
+            
+            if not valido_materias:
+                continue
+            
+            # Verificar regla 1: no se solapan horariamente
+            sin_solapamientos = True
+            for i in range(len(combinacion)):
+                for j in range(i + 1, len(combinacion)):
+                    if cursos_se_solapan(combinacion[i], combinacion[j]):
+                        sin_solapamientos = False
+                        break
+                if not sin_solapamientos:
+                    break
+            
+            if sin_solapamientos:
+                planes_validos.append(list(combinacion))
+    
+    # 4. Ordenar planes por cantidad de materias (de mayor a menor)
+    # Los planes con más materias son más valiosos
+    planes_validos.sort(key=lambda p: len(p), reverse=True)
+    
+    return planes_validos
+
+def generar_estadisticas(planes: List[List[Dict]], codigos_originales: List[str]) -> Dict:
+    """Genera estadísticas sobre los planes generados"""
+    if not planes:
+        return {
+            'total_planes': 0,
+            'total_cursos_seleccionados': len(codigos_originales),
+            'max_materias_simultaneas': 0,
+            'materias_incluidas': [],
+            'mensaje': 'No se pudieron generar planes sin solapamientos. Los cursos seleccionados se solapan completamente.'
+        }
+    
+    # Calcular
