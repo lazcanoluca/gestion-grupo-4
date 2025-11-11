@@ -186,8 +186,37 @@ def generar_estadisticas(planes: List[List[Dict]], codigos_originales: List[str]
             'total_planes': 0,
             'total_cursos_seleccionados': len(codigos_originales),
             'max_materias_simultaneas': 0,
+            'min_materias_simultaneas': 0,
+            'promedio_materias': 0,
             'materias_incluidas': [],
+            'cursos_nunca_usados': [],
             'mensaje': 'No se pudieron generar planes sin solapamientos. Los cursos seleccionados se solapan completamente.'
         }
     
-    # Calcular
+    # Calcular estadísticas
+    max_materias = max(len(plan) for plan in planes)
+    min_materias = min(len(plan) for plan in planes)
+    promedio_materias = sum(len(plan) for plan in planes) / len(planes)
+    
+    # Obtener todas las materias únicas incluidas en algún plan
+    materias_incluidas = set()
+    cursos_usados = set()
+    
+    for plan in planes:
+        for curso in plan:
+            materias_incluidas.add(curso['materia']['codigo'])
+            cursos_usados.add(curso['codigo'])
+    
+    # Cursos que nunca aparecen en ningún plan
+    cursos_nunca_usados = [codigo for codigo in codigos_originales if codigo not in cursos_usados]
+    
+    return {
+        'total_planes': len(planes),
+        'total_cursos_seleccionados': len(codigos_originales),
+        'max_materias_simultaneas': max_materias,
+        'min_materias_simultaneas': min_materias,
+        'promedio_materias': round(promedio_materias, 2),
+        'materias_incluidas': list(materias_incluidas),
+        'cursos_nunca_usados': cursos_nunca_usados,
+        'mensaje': f'Se generaron {len(planes)} planes válidos con hasta {max_materias} materias simultáneas'
+    }
