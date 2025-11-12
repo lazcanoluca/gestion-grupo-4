@@ -41,11 +41,10 @@ export function SelectedCursosPanel({ cursos, onGenerarPlanes, onRemove }: Selec
       <button
         onClick={onGenerarPlanes}
         disabled={!hayCursos}
-        className={`mt-4 w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${
-          hayCursos
-            ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
-            : 'bg-gray-300 cursor-not-allowed'
-        }`}
+        className={`mt-4 w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${hayCursos
+          ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
+          : 'bg-gray-300 cursor-not-allowed'
+          }`}
       >
         {hayCursos ? `Generar Planes (${cursos.length} seleccionados)` : 'Generar Planes'}
       </button>

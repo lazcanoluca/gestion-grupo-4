@@ -143,11 +143,10 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
               <div
                 key={curso.codigo}
                 onClick={() => manejarToggleCurso(materia, curso)}
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                  isSeleccionado
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
+                className={`border rounded-lg p-4 cursor-pointer transition-all ${isSeleccionado
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
               >
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-gray-800">{curso.nombre}</h3>
@@ -210,7 +209,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
             placeholder="Buscar por nombre o código..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset focus:border-blue-500 mb-4"
           />
 
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
@@ -240,3 +239,4 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
     </div>
   )
 }
+
