@@ -25,14 +25,13 @@ interface Curso {
 }
 
 interface Props {
-  onGenerarPlanes: (cursosSeleccionados: string[]) => void
-  cursosSeleccionados: string[]
-  onToggleCurso: (codigo: string) => void
+  cursosSeleccionadosCodigos: string[]
+  onToggleCurso: (curso: { codigo: string; materiaNombre: string; cursoNombre: string }) => void
 }
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
-export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggleCurso }: Props) {
+export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: Props) {
   const [materias, setMaterias] = useState<Materia[]>([])
   const [cursos, setCursos] = useState<Curso[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -40,7 +39,6 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
   const [materiaSeleccionada, setMateriaSeleccionada] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
 
-  // Cargar materias automáticamente al montar el componente
   useEffect(() => {
     cargarMaterias()
   }, [])
@@ -48,16 +46,16 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
   const cargarMaterias = async () => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       const response = await fetch('http://localhost:5000/api/siu/materias')
-      
+
       if (!response.ok) {
         throw new Error('Error al cargar materias')
       }
 
       const data = await response.json()
-      
+
       if (data.success) {
         setMaterias(data.materias)
       } else {
@@ -73,16 +71,16 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
   const cargarCursosPorMateria = async (codigoMateria: string) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       const response = await fetch(`http://localhost:5000/api/siu/materias/${codigoMateria}/cursos`)
-      
+
       if (!response.ok) {
         throw new Error('Error al cargar cursos')
       }
 
       const data = await response.json()
-      
+
       if (data.success) {
         setCursos(data.cursos)
         setMateriaSeleccionada(codigoMateria)
@@ -96,29 +94,27 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
     }
   }
 
-  const toggleCurso = (codigoCurso: string) => {
-    onToggleCurso(codigoCurso)
-  }
-
-  const handleGenerarPlanes = () => {
-    onGenerarPlanes(cursosSeleccionados)
-  }
-
   const materiasFiltradas = materias.filter(m =>
     m.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
     m.codigo.toLowerCase().includes(busqueda.toLowerCase())
   )
 
-  const formatearHora = (hora: string) => {
-    return hora.substring(0, 5)
+  const formatearHora = (hora: string) => hora.substring(0, 5)
+
+  const manejarToggleCurso = (materia: Materia | undefined, curso: Curso) => {
+    if (!materia) return
+    onToggleCurso({
+      codigo: curso.codigo,
+      materiaNombre: materia.nombre,
+      cursoNombre: curso.nombre
+    })
   }
 
-  // Vista normal del buscador
   if (materiaSeleccionada && cursos.length > 0) {
     const materia = materias.find(m => m.codigo === materiaSeleccionada)
-    
+
     return (
-      <div className="h-full flex flex-col">
+      <div className="flex-1 flex flex-col h-full">
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => {
@@ -139,25 +135,14 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
         </h2>
         <p className="text-sm text-gray-600 mb-4">Código: {materia?.codigo}</p>
 
-        {cursosSeleccionados.length > 0 && (
-          <div className="mb-4">
-            <button
-              onClick={handleGenerarPlanes}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2 px-4 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md"
-            >
-              Generar Planes ({cursosSeleccionados.length} seleccionados)
-            </button>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto space-y-3">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-1">
           {cursos.map((curso) => {
-            const isSeleccionado = cursosSeleccionados.includes(curso.codigo)
-            
+            const isSeleccionado = cursosSeleccionadosCodigos.includes(curso.codigo)
+
             return (
               <div
                 key={curso.codigo}
-                onClick={() => toggleCurso(curso.codigo)}
+                onClick={() => manejarToggleCurso(materia, curso)}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${
                   isSeleccionado
                     ? 'border-blue-500 bg-blue-50'
@@ -201,7 +186,7 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex-1 flex flex-col h-full">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
         Buscar Materias
       </h2>
@@ -228,7 +213,7 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-4"
           />
 
-          <div className="flex-1 overflow-y-auto space-y-2">
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
             {!isLoading && materiasFiltradas.length === 0 && (
               <div className="text-center text-gray-500 py-8 border border-dashed border-gray-300 rounded-lg">
                 No se encontraron materias.

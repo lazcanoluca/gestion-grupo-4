@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import { WeeklyCalendar } from './components/WeeklyCalendar'
 import { BuscadorMaterias } from './BuscadorMaterias'
+import { SelectedCursosPanel } from './components/SelectedCursosPanel'
 
 interface Clase {
   dia: number
@@ -28,6 +29,12 @@ interface Plan {
   cursos: Curso[]
 }
 
+interface CursoSeleccionado {
+  codigo: string
+  materiaNombre: string
+  cursoNombre: string
+}
+
 const mockLogin = async (padron: string): Promise<{ padron: string }> => {
   const response = await fetch('http://localhost:5000/api/login', {
     method: 'POST',
@@ -51,7 +58,7 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
   const [activePanel, setActivePanel] = useState<'import' | 'buscador' | null>(null)
-  const [cursosSeleccionados, setCursosSeleccionados] = useState<string[]>([])
+  const [cursosSeleccionados, setCursosSeleccionados] = useState<CursoSeleccionado[]>([])
   const [planesGenerados, setPlanesGenerados] = useState<Plan[]>([])
   const [isGenerandoPlanes, setIsGenerandoPlanes] = useState(false)
   
@@ -83,15 +90,17 @@ function App() {
     setPlanesGenerados([])
   }
 
-  const handleToggleCurso = (codigo: string) => {
+  const handleToggleCurso = (curso: CursoSeleccionado) => {
     setCursosSeleccionados(prev => {
-      if (prev.includes(codigo)) {
-        return prev.filter(c => c !== codigo)
+      if (prev.some(c => c.codigo === curso.codigo)) {
+        return prev.filter(c => c.codigo !== curso.codigo)
       } else {
-        return [...prev, codigo]
+        return [...prev, curso]
       }
     })
   }
+
+  const cursosSeleccionadosCodigos = cursosSeleccionados.map(c => c.codigo)
 
   const handleGenerarPlanes = async (cursos: string[]) => {
     setIsGenerandoPlanes(true)
@@ -285,11 +294,23 @@ function App() {
                   </div>
                 )}
                 {!isGenerandoPlanes && (
-                  <BuscadorMaterias 
-                    onGenerarPlanes={handleGenerarPlanes}
-                    cursosSeleccionados={cursosSeleccionados}
-                    onToggleCurso={handleToggleCurso}
-                  />
+                  <div className="h-full flex flex-col">
+                    <div className="flex-1 overflow-y-auto pr-2">
+                      <BuscadorMaterias 
+                        cursosSeleccionadosCodigos={cursosSeleccionadosCodigos}
+                        onToggleCurso={handleToggleCurso}
+                      />
+                    </div>
+                    <SelectedCursosPanel
+                      cursos={cursosSeleccionados}
+                      onGenerarPlanes={() => handleGenerarPlanes(cursosSeleccionadosCodigos)}
+                      onRemove={(codigo) =>
+                        handleToggleCurso(
+                          cursosSeleccionados.find(c => c.codigo === codigo) || { codigo, materiaNombre: '', cursoNombre: '' }
+                        )
+                      }
+                    />
+                  </div>
                 )}
               </>
             )}
