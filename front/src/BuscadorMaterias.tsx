@@ -229,6 +229,11 @@ export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggl
           />
 
           <div className="flex-1 overflow-y-auto space-y-2">
+            {!isLoading && materiasFiltradas.length === 0 && (
+              <div className="text-center text-gray-500 py-8 border border-dashed border-gray-300 rounded-lg">
+                No se encontraron materias.
+              </div>
+            )}
             {materiasFiltradas.map((materia) => (
               <div
                 key={materia.codigo}
