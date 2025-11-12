@@ -3,6 +3,31 @@ import './App.css'
 import { WeeklyCalendar } from './components/WeeklyCalendar'
 import { BuscadorMaterias } from './BuscadorMaterias'
 
+interface Clase {
+  dia: number
+  hora_inicio: string
+  hora_fin: string
+  tipo?: string
+}
+
+interface Curso {
+  codigo: string
+  numero_curso: string
+  catedra?: string
+  periodo: string
+  materia: {
+    codigo: string
+    nombre: string
+  }
+  docentes: string[]
+  clases: Clase[]
+}
+
+interface Plan {
+  id: number
+  cursos: Curso[]
+}
+
 const mockLogin = async (padron: string): Promise<{ padron: string }> => {
   const response = await fetch('http://localhost:5000/api/login', {
     method: 'POST',
@@ -26,6 +51,9 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false)
   const [activePanel, setActivePanel] = useState<'import' | 'buscador' | null>(null)
+  const [cursosSeleccionados, setCursosSeleccionados] = useState<string[]>([])
+  const [planesGenerados, setPlanesGenerados] = useState<Plan[]>([])
+  const [isGenerandoPlanes, setIsGenerandoPlanes] = useState(false)
   
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -51,6 +79,63 @@ function App() {
     setLoggedInUser(null)
     setIsDropdownOpen(false)
     setError(null)
+    setCursosSeleccionados([])
+    setPlanesGenerados([])
+  }
+
+  const handleToggleCurso = (codigo: string) => {
+    setCursosSeleccionados(prev => {
+      if (prev.includes(codigo)) {
+        return prev.filter(c => c !== codigo)
+      } else {
+        return [...prev, codigo]
+      }
+    })
+  }
+
+  const handleGenerarPlanes = async (cursos: string[]) => {
+    setIsGenerandoPlanes(true)
+    setError(null)
+
+    try {
+      const response = await fetch('http://localhost:5000/api/scheduler/generar-planes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cursos: cursos,
+          max_planes: 1000
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error al generar planes')
+      }
+
+      const data = await response.json()
+      
+      if (data.success) {
+        const planesConId = data.planes.map((cursos: Curso[], index: number) => ({
+          id: index,
+          cursos
+        }))
+        setPlanesGenerados(planesConId)
+        setIsSideMenuOpen(false)
+        setActivePanel(null)
+      } else {
+        throw new Error(data.error || 'Error desconocido')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al generar planes')
+      alert(err instanceof Error ? err.message : 'Error al generar planes')
+    } finally {
+      setIsGenerandoPlanes(false)
+    }
+  }
+
+  const handleLimpiarPlanes = () => {
+    setPlanesGenerados([])
+    setCursosSeleccionados([])
   }
 
   // Cerrar dropdown al hacer clic fuera
@@ -121,12 +206,14 @@ function App() {
         </div>
       </header>
       
-
       {/* MAIN */}
       <main className="h-[calc(100vh-73px)]">
         {loggedInUser && (
           <div className="h-full">
-            <WeeklyCalendar />
+            <WeeklyCalendar 
+              planesGenerados={planesGenerados}
+              onLimpiarPlanes={handleLimpiarPlanes}
+            />
           </div>
         )}
       </main>
@@ -182,14 +269,30 @@ function App() {
                     onClick={() => setActivePanel('buscador')}
                     className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-indigo-700 hover:to-purple-700"
                   >
-                    Buscar Materias en SIU
+                    Buscar Materias
                   </button>
                 </div>
               </>
             )}
 
             {/* Buscador dentro del panel */}
-            {activePanel === 'buscador' && <BuscadorMaterias />}
+            {activePanel === 'buscador' && (
+              <>
+                {isGenerandoPlanes && (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <p className="text-gray-600">Generando planes...</p>
+                  </div>
+                )}
+                {!isGenerandoPlanes && (
+                  <BuscadorMaterias 
+                    onGenerarPlanes={handleGenerarPlanes}
+                    cursosSeleccionados={cursosSeleccionados}
+                    onToggleCurso={handleToggleCurso}
+                  />
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

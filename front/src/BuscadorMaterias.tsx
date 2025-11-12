@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { GeneradorPlanes } from './GeneradorPlanes'
+import { useState, useEffect } from 'react'
 
 interface Materia {
   codigo: string
@@ -25,17 +24,26 @@ interface Curso {
   clases: Clase[]
 }
 
+interface Props {
+  onGenerarPlanes: (cursosSeleccionados: string[]) => void
+  cursosSeleccionados: string[]
+  onToggleCurso: (codigo: string) => void
+}
+
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
-export function BuscadorMaterias() {
+export function BuscadorMaterias({ onGenerarPlanes, cursosSeleccionados, onToggleCurso }: Props) {
   const [materias, setMaterias] = useState<Materia[]>([])
   const [cursos, setCursos] = useState<Curso[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [materiaSeleccionada, setMateriaSeleccionada] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
-  const [cursosSeleccionados, setCursosSeleccionados] = useState<string[]>([])
-  const [mostrarGenerador, setMostrarGenerador] = useState(false)
+
+  // Cargar materias automáticamente al montar el componente
+  useEffect(() => {
+    cargarMaterias()
+  }, [])
 
   const cargarMaterias = async () => {
     setIsLoading(true)
@@ -89,13 +97,11 @@ export function BuscadorMaterias() {
   }
 
   const toggleCurso = (codigoCurso: string) => {
-    setCursosSeleccionados(prev => {
-      if (prev.includes(codigoCurso)) {
-        return prev.filter(c => c !== codigoCurso)
-      } else {
-        return [...prev, codigoCurso]
-      }
-    })
+    onToggleCurso(codigoCurso)
+  }
+
+  const handleGenerarPlanes = () => {
+    onGenerarPlanes(cursosSeleccionados)
   }
 
   const materiasFiltradas = materias.filter(m =>
@@ -105,24 +111,6 @@ export function BuscadorMaterias() {
 
   const formatearHora = (hora: string) => {
     return hora.substring(0, 5)
-  }
-
-  const handleSeleccionarPlan = (cursos: any[]) => {
-    // Aquí deberías implementar la lógica para agregar los cursos al calendario
-    console.log('Plan seleccionado:', cursos)
-    alert(`Plan aplicado con ${cursos.length} materias`)
-    setMostrarGenerador(false)
-  }
-
-  // Si estamos en el generador de planes
-  if (mostrarGenerador) {
-    return (
-      <GeneradorPlanes
-        cursosSeleccionados={cursosSeleccionados}
-        onVolverAlBuscador={() => setMostrarGenerador(false)}
-        onSeleccionarPlan={handleSeleccionarPlan}
-      />
-    )
   }
 
   // Vista normal del buscador
@@ -154,7 +142,7 @@ export function BuscadorMaterias() {
         {cursosSeleccionados.length > 0 && (
           <div className="mb-4">
             <button
-              onClick={() => setMostrarGenerador(true)}
+              onClick={handleGenerarPlanes}
               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2 px-4 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md"
             >
               Generar Planes ({cursosSeleccionados.length} seleccionados)
@@ -218,14 +206,10 @@ export function BuscadorMaterias() {
         Buscar Materias
       </h2>
 
-      {materias.length === 0 && (
-        <button
-          onClick={cargarMaterias}
-          disabled={isLoading}
-          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 transition-all"
-        >
-          {isLoading ? 'Cargando...' : 'Cargar Materias del SIU'}
-        </button>
+      {isLoading && materias.length === 0 && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
       )}
 
       {error && (
