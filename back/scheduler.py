@@ -104,15 +104,17 @@ def agrupar_cursos_por_materia(cursos: List[Dict]) -> Dict[str, List[Dict]]:
         materias[materia_codigo].append(curso)
     return materias
 
-def generar_planes(codigos_cursos: List[str], max_planes: int = 1000) -> List[List[Dict]]:
+def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_parciales: bool = False) -> List[List[Dict]]:
     """
     Genera todas las combinaciones posibles de cursos que cumplan:
     1. No se solapen horariamente
     2. A lo sumo un curso por materia
+    3. Si permitir_parciales=False, solo devuelve planes con todas las materias
     
     Args:
         codigos_cursos: Lista de códigos de cursos seleccionados por el usuario
         max_planes: Límite máximo de planes a generar (para evitar explosión combinatoria)
+        permitir_parciales: Si es False, solo devuelve planes que incluyen todas las materias
         
     Returns:
         Lista de planes válidos (cada plan es una lista de cursos)
@@ -127,12 +129,11 @@ def generar_planes(codigos_cursos: List[str], max_planes: int = 1000) -> List[Li
     if not cursos_datos:
         return []
     
-    # 2. Agrupar por materia
-    # parece que no hace falta
-    cursos_por_materia = agrupar_cursos_por_materia(cursos_datos)
+    # 2. Determinar cuántas materias únicas hay
+    materias_unicas = set(curso['materia']['codigo'] for curso in cursos_datos)
+    total_materias = len(materias_unicas)
     
     # 3. Generar todos los subconjuntos posibles de cursos
-    # (desde 1 curso hasta todos los cursos)
     planes_validos = []
     
     # Iterar sobre todos los tamaños posibles de combinaciones
@@ -158,6 +159,10 @@ def generar_planes(codigos_cursos: List[str], max_planes: int = 1000) -> List[Li
                 materias_en_plan[materia_codigo] = curso
             
             if not valido_materias:
+                continue
+            
+            # Si no se permiten planes parciales, verificar que incluya todas las materias
+            if not permitir_parciales and len(materias_en_plan) != total_materias:
                 continue
             
             # Verificar regla 1: no se solapan horariamente

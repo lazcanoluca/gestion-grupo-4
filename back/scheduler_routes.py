@@ -10,7 +10,8 @@ def generar_planes_endpoint():
     Genera planes a partir de una lista de códigos de cursos.
     Espera JSON con formato:
     {
-        "cursos": ["CB100-1", "CB100-2", "61.03-1", "75.01-1"]
+        "cursos": ["CB100-1", "CB100-2", "61.03-1", "75.01-1"],
+        "permitir_parciales": false  // Opcional, por defecto False
     }
     """
     try:
@@ -34,8 +35,11 @@ def generar_planes_endpoint():
         # Límite opcional
         max_planes = data.get('max_planes', 1000)
         
+        # Permitir planes parciales (por defecto False)
+        permitir_parciales = data.get('permitir_parciales', False)
+        
         # Generar planes
-        planes = generar_planes(codigos, max_planes=max_planes)
+        planes = generar_planes(codigos, max_planes=max_planes, permitir_parciales=permitir_parciales)
         stats = generar_estadisticas(planes, codigos)
         
         return jsonify({
