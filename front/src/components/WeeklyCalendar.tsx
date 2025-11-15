@@ -85,10 +85,9 @@ export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: Weekly
     
     // Calcular la altura en celdas
     const duracionMinutos = (horaFin * 60 + minutoFin) - (horaInicio * 60 + minutoInicio)
-    const alturaPx = (duracionMinutos / 60) * 80 // 80px por hora
-    
-    // Calcular offset si no empieza en punto
-    const offsetTop = (minutoInicio / 60) * 80
+    const alturaBase = window.innerHeight / 16
+    const alturaPx = (duracionMinutos / 60) * alturaBase
+    const offsetTop = (minutoInicio / 60) * alturaBase
     
     const color = coloresPorMateria[curso.materia.codigo] || COLORES_MATERIAS[0]
 
@@ -232,7 +231,7 @@ export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: Weekly
                     <div
                       key={`${hora}-${diaIndex}`}
                       className="relative border-b border-r border-gray-200 bg-white"
-                      style={{ height: '80px', minHeight: '80px' }}
+                      style={{ height: 'calc((100vh - 200px) / 16)' }}
                     >
                       {/* Renderizar clases en esta celda */}
                       {planActual.cursos.map((curso) =>

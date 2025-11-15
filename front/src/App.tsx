@@ -102,7 +102,7 @@ function App() {
 
   const cursosSeleccionadosCodigos = cursosSeleccionados.map(c => c.codigo)
 
-  const handleGenerarPlanes = async (cursos: string[]) => {
+   const handleGenerarPlanes = async (cursos: string[]) => {
     setIsGenerandoPlanes(true)
     setError(null)
 
@@ -116,11 +116,6 @@ function App() {
         })
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Error al generar planes')
-      }
-
       const data = await response.json()
       
       if (data.success) {
@@ -132,11 +127,17 @@ function App() {
         setIsSideMenuOpen(false)
         setActivePanel(null)
       } else {
-        throw new Error(data.error || 'Error desconocido')
+        // Mostrar mensaje de error específico
+        const mensajeError = data.error || 'Error al generar planes'
+        setError(mensajeError)
+        
+        // Mostrar alerta con el mensaje
+        alert(`❌ ${mensajeError}\n\nIntenta seleccionar otros cursos o verifica que los horarios no se superpongan completamente.`)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al generar planes')
-      alert(err instanceof Error ? err.message : 'Error al generar planes')
+      const mensajeError = err instanceof Error ? err.message : 'Error al generar planes'
+      setError(mensajeError)
+      alert(`❌ ${mensajeError}`)
     } finally {
       setIsGenerandoPlanes(false)
     }

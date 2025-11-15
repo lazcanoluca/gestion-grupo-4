@@ -40,6 +40,14 @@ def generar_planes_endpoint():
         
         # Generar planes
         planes = generar_planes(codigos, max_planes=max_planes, permitir_parciales=permitir_parciales)
+        # Si no hay planes, devolver error informativo
+        if len(planes) == 0:
+            return jsonify({
+                'success': False,
+                'error': 'No se pudieron generar planes sin solapamientos con las materias seleccionadas. Los horarios de los cursos elegidos se superponen completamente.',
+                'planes': [],
+                'total': 0
+            }), 200
         stats = generar_estadisticas(planes, codigos)
         
         return jsonify({
