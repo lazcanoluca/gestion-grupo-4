@@ -214,7 +214,13 @@ def generar_estadisticas(planes: List[List[Dict]], codigos_originales: List[str]
     
     # Cursos que nunca aparecen en ningún plan
     cursos_nunca_usados = [codigo for codigo in codigos_originales if codigo not in cursos_usados]
-    
+
+    # Obtener los nombres de las materias y cátedras que no aparecen en ningún plan
+    info_nunca_usados = []
+    for curso in cursos_nunca_usados:
+        info = obtener_datos_curso(curso)
+        info_nunca_usados.append(f"{info['materia']['nombre']} - {info['catedra']}")
+
     return {
         'total_planes': len(planes),
         'total_cursos_seleccionados': len(codigos_originales),
@@ -223,5 +229,6 @@ def generar_estadisticas(planes: List[List[Dict]], codigos_originales: List[str]
         'promedio_materias': round(promedio_materias, 2),
         'materias_incluidas': list(materias_incluidas),
         'cursos_nunca_usados': cursos_nunca_usados,
+        'advertencia_nunca_usados': f"Los siguientes cursos no aparecen en ningún plan:\n {'\n'.join(info_nunca_usados)}" if info_nunca_usados else None,
         'mensaje': f'Se generaron {len(planes)} planes válidos con hasta {max_materias} materias simultáneas'
     }

@@ -119,6 +119,9 @@ function App() {
       const data = await response.json()
       
       if (data.success) {
+        if (data.tipo_advertencia == 'advertencia_nunca_usados') {
+          alert("<Advertencia>\n" + data.advertencia)
+        }
         const planesConId = data.planes.map((cursos: Curso[], index: number) => ({
           id: index,
           cursos

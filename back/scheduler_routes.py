@@ -49,13 +49,18 @@ def generar_planes_endpoint():
                 'total': 0
             }), 200
         stats = generar_estadisticas(planes, codigos)
-        
-        return jsonify({
+
+        respuesta = {
             'success': True,
             'estadisticas': stats,
             'planes': planes,
             'total': len(planes)
-        }), 200
+        }
+        # Hay planes, pero cursos excluidos
+        if stats["advertencia_nunca_usados"]:
+            respuesta['tipo_advertencia'] = 'advertencia_nunca_usados'
+            respuesta['advertencia'] = stats["advertencia_nunca_usados"]
+        return jsonify(respuesta), 200
         
     except Exception as e:
         import traceback
