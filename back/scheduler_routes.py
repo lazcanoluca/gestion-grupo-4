@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from scheduler import generar_planes, generar_estadisticas, obtener_datos_curso
-from tests.test_data import SELECCION_USUARIO
 
 scheduler_bp = Blueprint('scheduler', __name__)
 
@@ -84,29 +83,6 @@ def generar_planes_endpoint():
             respuesta['advertencia'] = stats["advertencia_nunca_usados"]
         
         return jsonify(respuesta), 200
-        
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@scheduler_bp.route('/test-hardcoded', methods=['GET'])
-def test_hardcoded():
-    """Endpoint de prueba con datos hardcodeados"""
-    try:
-        planes = generar_planes(SELECCION_USUARIO)
-        stats = generar_estadisticas(planes, SELECCION_USUARIO)
-        
-        return jsonify({
-            'success': True,
-            'cursos_seleccionados': SELECCION_USUARIO,
-            'estadisticas': stats,
-            'planes': planes[:10],  # Mostrar solo primeros 10
-            'total': len(planes)
-        }), 200
         
     except Exception as e:
         import traceback
