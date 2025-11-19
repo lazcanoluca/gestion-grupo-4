@@ -24,6 +24,7 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     
     curso = cursor.fetchone()
     if not curso:
+        print(f"No se encontro el curso con codigo {curso_codigo}")
         conn.close()
         return None
     
