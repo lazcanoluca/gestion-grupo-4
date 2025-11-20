@@ -7,6 +7,7 @@ import os
 # Importar el blueprint del SIU
 from siu_routes import siu_bp
 from scheduler_routes import scheduler_bp
+from feedback_routes import feedback_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -51,6 +52,9 @@ def init_db():
             numero_curso TEXT NOT NULL,
             catedra TEXT,
             periodo TEXT NOT NULL,
+            modalidad TEXT default 'sin_confirmar',
+            sede TEXT,
+            votos_modalidad INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (materia_codigo) REFERENCES materias(codigo) ON DELETE CASCADE,
             UNIQUE(materia_codigo, numero_curso, periodo)
@@ -101,21 +105,35 @@ def init_db():
             FOREIGN KEY (curso_codigo) REFERENCES cursos(codigo) ON DELETE CASCADE
         )
     ''')
+
+    # 7. FEEDBACK DE MODALIDADES - Votos de usuarios
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS feedback_modalidad (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            curso_codigo TEXT NOT NULL,
+            modalidad TEXT NOT NULL,
+            sede TEXT,
+            usuario_padron TEXT,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (curso_codigo) REFERENCES cursos(codigo) ON DELETE CASCADE
+        )
+    ''')
     
     # Índices
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_cursos_materia ON cursos(materia_codigo)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_cursos_periodo ON cursos(periodo)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cursos_modalidad ON cursos(modalidad)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_clases_curso ON clases(curso_codigo)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_inscripciones_padron ON inscripciones(padron)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_feedback_curso ON feedback_modalidad(curso_codigo)')
     
     conn.commit()
     conn.close()
 
-# Registrar el blueprint del SIU
+# Registrar blueprints
 app.register_blueprint(siu_bp, url_prefix='/api/siu')
-
-# Registrar el blueprint del scheduler
 app.register_blueprint(scheduler_bp, url_prefix='/api/scheduler')
+app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
 
 @app.route('/api/login', methods=['POST'])
 def login():
