@@ -1,12 +1,5 @@
-const SEMANA = [
-  "Domingo",
-  "Lunes",
-  "Martes",
-  "Miércoles",
-  "Jueves",
-  "Viernes",
-  "Sábado",
-];
+const SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
 
 export function parseSIU(rawdata) {
   // en windows los saltos de linea son \r\n, asi que los borramos para que el parser funcione sin importar el sistema operativo

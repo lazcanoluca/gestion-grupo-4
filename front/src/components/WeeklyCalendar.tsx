@@ -26,9 +26,11 @@ interface Plan {
 }
 
 interface WeeklyCalendarProps {
-  planesGenerados?: Plan[]
-  onLimpiarPlanes?: () => void
+  planesGenerados?: Plan[];
+  onBack?: () => void;          // ← NUEVO
+  onLimpiarPlanes?: () => void;
 }
+
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 const HORAS = Array.from({ length: 16 }, (_, i) => i + 7) // 7:00 a 22:00
@@ -46,7 +48,7 @@ const COLORES_MATERIAS = [
   'bg-cyan-100 border-cyan-300 text-cyan-800',
 ]
 
-export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: WeeklyCalendarProps) {
+export function WeeklyCalendar({ planesGenerados = [], onBack, onLimpiarPlanes }: WeeklyCalendarProps) {
   const [planSeleccionado, setPlanSeleccionado] = useState<number>(0)
   const [coloresPorMateria, setColoresPorMateria] = useState<Record<string, string>>({})
 
@@ -102,8 +104,9 @@ export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: Weekly
         }}
       >
         <div className="text-xs font-semibold truncate">
-          {curso.materia.nombre}
+          {curso.materia.nombre} - {curso.catedra || curso.numero_curso}
         </div>
+
         <div className="text-xs truncate">
           {formatearHora(clase.hora_inicio)} - {formatearHora(clase.hora_fin)}
         </div>
@@ -125,6 +128,8 @@ export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: Weekly
 
   return (
     <div className="h-full flex flex-col bg-white">
+
+
       {/* Solapas de Planes */}
       {planesGenerados.length > 0 && (
         <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2 overflow-x-auto">
@@ -147,14 +152,29 @@ export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: Weekly
             ))}
           </div>
           
-          {onLimpiarPlanes && (
-            <button
-              onClick={onLimpiarPlanes}
-              className="ml-auto px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium transition-colors"
-            >
-              Limpiar Planes
-            </button>
-          )}
+          <div className="ml-auto flex gap-2">
+  
+            {/* BOTÓN MODIFICAR SELECCIÓN */}
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm font-medium transition-colors w-40 text-center"
+              >
+                Modificar Selección
+              </button>
+            )}
+
+            {/* BOTÓN LIMPIAR PLANES */}
+            {onLimpiarPlanes && (
+              <button
+                onClick={onLimpiarPlanes}
+                className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium transition-colors w-40 text-center"
+              >
+                Limpiar Planes
+              </button>
+            )}
+          </div>
+
         </div>
       )}
 
@@ -169,7 +189,7 @@ export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: Weekly
                   key={curso.codigo}
                   className={`${color} px-3 py-1 rounded-full text-xs font-medium border-2`}
                 >
-                  {curso.materia.nombre} - Curso {curso.numero_curso}
+                  {curso.materia.nombre} - {curso.catedra || curso.numero_curso}
                 </div>
               )
             })}
@@ -236,7 +256,7 @@ export function WeeklyCalendar({ planesGenerados = [], onLimpiarPlanes }: Weekly
                       {/* Renderizar clases en esta celda */}
                       {planActual.cursos.map((curso) =>
                         curso.clases
-                          .filter((clase) => clase.dia === diaIndex)
+                          .filter((clase) => clase.dia - 1=== diaIndex)
                           .map((clase) => renderClaseEnCalendario(curso, clase, hora))
                       )}
                     </div>
