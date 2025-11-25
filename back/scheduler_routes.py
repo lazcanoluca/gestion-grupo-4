@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from scheduler import generar_planes, generar_estadisticas, obtener_datos_curso
+from plan_analyzer import analizar_plan
 
 scheduler_bp = Blueprint('scheduler', __name__)
 
@@ -56,9 +57,13 @@ def generar_planes_endpoint():
             prioridad_total = sum(
                 prioridades.get(curso['codigo'], 3) for curso in plan  # Default: 3
             )
+
+            analisis = analizar_plan(plan)
+
             planes_con_prioridad.append({
                 'cursos': plan,
-                'prioridad_total': prioridad_total
+                'prioridad_total': prioridad_total,
+                'analisis': analisis
             })
         
         # Ordenar por prioridad descendente (5 = máxima prioridad)
@@ -67,7 +72,8 @@ def generar_planes_endpoint():
         # Extraer cursos manteniendo compatibilidad
         planes_ordenados = [p['cursos'] for p in planes_con_prioridad]
         prioridades_totales = [p['prioridad_total'] for p in planes_con_prioridad]
-        
+        analisis_planes = [p['analisis'] for p in planes_con_prioridad]
+
         stats = generar_estadisticas(planes_ordenados, codigos)
         stats['prioridades_totales'] = prioridades_totales[:10]  # Primeros 10
         
@@ -75,6 +81,7 @@ def generar_planes_endpoint():
             'success': True,
             'estadisticas': stats,
             'planes': planes_ordenados,
+            'analisis': analisis_planes,
             'total': len(planes_ordenados)
         }
         
