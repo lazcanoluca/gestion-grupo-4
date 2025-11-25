@@ -13,10 +13,16 @@ interface Props {
   prioridadesGuardadas: Record<string, number>;
   onToggleCurso: (curso: CursoSeleccionado) => void;
   onGenerarPlanes: (p: Record<string, number>) => void;
+  onPrioridadesChange: (p: Record<string, number>) => void;
 
   // 👉 AGREGAR ESTAS DOS NUEVAS PROPS
   maxPlanes: number;
   setMaxPlanes: (value: number) => void;
+  preferencias: {
+    sede: string;
+    modalidad: string;
+  };
+  setPreferencias: (pref: { sede: string; modalidad: string }) => void;
 }
 
 export default function PantallaSeleccion({
@@ -25,10 +31,13 @@ export default function PantallaSeleccion({
   prioridadesGuardadas,
   onToggleCurso,
   onGenerarPlanes,
+  onPrioridadesChange,
 
   // 👉 AGREGARLAS TAMBIÉN ACÁ
   maxPlanes,
   setMaxPlanes,
+  preferencias,
+  setPreferencias,
 }: Props) {
   return (
     <div className="w-full h-full grid grid-cols-3 gap-4 p-6 bg-gray-50">
@@ -56,6 +65,7 @@ export default function PantallaSeleccion({
             )
           }
           prioridadesIniciales={prioridadesGuardadas}
+          onPrioridadesChange={onPrioridadesChange}
         />
       </div>
 
@@ -72,7 +82,10 @@ export default function PantallaSeleccion({
             </label>
             <select
               id="sede-select"
-              defaultValue=""
+              value={preferencias.sede}
+              onChange={(e) =>
+                setPreferencias({ ...preferencias, sede: e.target.value })
+              }
               className="w-full border rounded px-2 py-1 mt-1"
             >
               <option value="">Cualquiera</option>
@@ -88,7 +101,10 @@ export default function PantallaSeleccion({
             </label>
             <select
               id="modalidad-select"
-              defaultValue=""
+              value={preferencias.modalidad}
+              onChange={(e) =>
+                setPreferencias({ ...preferencias, modalidad: e.target.value })
+              }
               className="w-full border rounded px-2 py-1 mt-1"
             >
               <option value="">Cualquiera</option>

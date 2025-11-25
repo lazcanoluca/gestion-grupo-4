@@ -4,6 +4,8 @@ import { WeeklyCalendar } from "./components/WeeklyCalendar";
 import { BuscadorMaterias } from "./BuscadorMaterias";
 import { SelectedCursosPanel } from "./components/SelectedCursosPanel";
 import PantallaSeleccion from "./PantallaSeleccion";
+import { usePersistentState } from "./hooks/usePersistentState";
+import { useUserScopedPersistentState } from "./hooks/useUserScopedPersistentState";
 
 interface Clase {
   dia: number;
@@ -28,6 +30,11 @@ interface Curso {
 interface Plan {
   id: number;
   cursos: Curso[];
+}
+
+interface PreferenciasAdicionales {
+  sede: string;
+  modalidad: string;
 }
 
 interface CursoSeleccionado {
@@ -74,7 +81,10 @@ function App() {
   >("home");
 
   const [padron, setPadron] = useState("");
-  const [loggedInUser, setLoggedInUser] = useState<string | null>(null);
+  const [loggedInUser, setLoggedInUser] = usePersistentState<string | null>(
+    "scheduler.loggedInUser",
+    null
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,19 +92,38 @@ function App() {
   const [activePanel, setActivePanel] = useState<"import" | "buscador" | null>(
     null
   );
-  const [cursosSeleccionados, setCursosSeleccionados] = useState<
-    CursoSeleccionado[]
-  >([]);
+  const [cursosSeleccionados, setCursosSeleccionados] =
+    useUserScopedPersistentState<CursoSeleccionado[]>(
+      loggedInUser,
+      "cursosSeleccionados",
+      []
+    );
   const [planesGenerados, setPlanesGenerados] = useState<Plan[]>([]);
   const [isGenerandoPlanes, setIsGenerandoPlanes] = useState(false);
 
   // Prioridades guardadas entre recargas
-  const [prioridadesGuardadas, setPrioridadesGuardadas] = useState<
-    Record<string, number>
-  >({});
+  const [prioridadesGuardadas, setPrioridadesGuardadas] =
+    useUserScopedPersistentState<Record<string, number>>(
+      loggedInUser,
+      "prioridadesGuardadas",
+      {}
+    );
 
-  const [maxPlanes, setMaxPlanes] = useState(500); // valor por defecto
+  const [maxPlanes, setMaxPlanes] = useUserScopedPersistentState<number>(
+    loggedInUser,
+    "maxPlanes",
+    500
+  ); // valor por defecto
 
+  const [preferenciasAdicionales, setPreferenciasAdicionales] =
+    useUserScopedPersistentState<PreferenciasAdicionales>(
+      loggedInUser,
+      "preferencias",
+      {
+        sede: "",
+        modalidad: "",
+      }
+    );
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -121,9 +150,7 @@ function App() {
     setLoggedInUser(null);
     setIsDropdownOpen(false);
     setError(null);
-    setCursosSeleccionados([]);
     setPlanesGenerados([]);
-    setPrioridadesGuardadas({});
     setActiveScreen("home");
   };
 
@@ -153,7 +180,7 @@ function App() {
             cursos: cursosSeleccionadosCodigos,
             prioridades: prioridades,
             max_planes: maxPlanes,
-        }),
+          }),
         }
       );
 
@@ -198,6 +225,8 @@ function App() {
     setPlanesGenerados([]);
     setCursosSeleccionados([]);
     setPrioridadesGuardadas({});
+    setMaxPlanes(500);
+    setPreferenciasAdicionales({ sede: "", modalidad: "" });
   };
 
   // Cerrar dropdown al hacer clic fuera
@@ -255,7 +284,7 @@ function App() {
           </div>
 
           {loggedInUser && (
-            
+
             <div className="flex items-center gap-4">
               {/* Botón para abrir menú lateral */}
               <button
@@ -363,9 +392,12 @@ function App() {
             prioridadesGuardadas={prioridadesGuardadas}
             onToggleCurso={handleToggleCurso}
             onGenerarPlanes={handleGenerarPlanes}
+            onPrioridadesChange={setPrioridadesGuardadas}
             maxPlanes={maxPlanes}
             setMaxPlanes={setMaxPlanes}
-        />
+            preferencias={preferenciasAdicionales}
+            setPreferencias={setPreferenciasAdicionales}
+          />
         )}
 
         {loggedInUser && activeScreen === "calendario" && (
@@ -394,22 +426,22 @@ function App() {
           ">
 
             <form onSubmit={handleLogin} className="space-y-6">
-             <div className="space-y-1">
-              <label htmlFor="padron" className="text-gray-700 dark:text-gray-200 font-medium">
-                Ingrese su padrón
-              </label>
+              <div className="space-y-1">
+                <label htmlFor="padron" className="text-gray-700 dark:text-gray-200 font-medium">
+                  Ingrese su padrón
+                </label>
 
-              <input
-                id="padron"
-                type="text"
-                value={padron}
-                onChange={(e) => setPadron(e.target.value)}
-                placeholder="Padrón"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                required
-                disabled={isLoading}
-              />
-            </div>
+                <input
+                  id="padron"
+                  type="text"
+                  value={padron}
+                  onChange={(e) => setPadron(e.target.value)}
+                  placeholder="Padrón"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
 
               {error && <p className="text-red-600">{error}</p>}
               <button
