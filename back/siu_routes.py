@@ -143,13 +143,14 @@ def parse_siu():
                             for clase in curso['clases']:
                                 cursor.execute('''
                                     INSERT INTO clases 
-                                    (curso_codigo, dia, hora_inicio, hora_fin, tipo)
-                                    VALUES (?, ?, ?, ?, ?)
+                                    (curso_codigo, dia, hora_inicio, hora_fin, sede, tipo)
+                                    VALUES (?, ?, ?, ?, ?, ?)
                                 ''', (
                                     curso_codigo,
                                     clase['dia'],
                                     clase['inicio'],
                                     clase['fin'],
+                                    clase.get('sede', 'Sede desconocida'),
                                     clase.get('tipo')
                                 ))
                             
@@ -230,7 +231,6 @@ def get_materias():
 @siu_bp.route('/materias/<codigo>/cursos', methods=['GET'])
 def get_cursos_de_materia(codigo):
     """
-    🔥 NUEVO: Obtener todos los cursos de una materia específica
     Ejemplo: GET /api/siu/materias/61.03/cursos
     """
     try:
@@ -289,7 +289,7 @@ def get_cursos_de_materia(codigo):
             
             # Obtener clases
             cursor.execute('''
-                SELECT dia, hora_inicio, hora_fin, tipo, aula
+                SELECT dia, hora_inicio, hora_fin, tipo, sede
                 FROM clases
                 WHERE curso_codigo = ?
                 ORDER BY dia, hora_inicio
@@ -379,7 +379,7 @@ def get_cursos():
             
             # Obtener clases
             cursor.execute('''
-                SELECT dia, hora_inicio, hora_fin, tipo
+                SELECT dia, hora_inicio, hora_fin, tipo, sede
                 FROM clases
                 WHERE curso_codigo = ?
                 ORDER BY dia, hora_inicio
@@ -453,11 +453,11 @@ def get_curso(codigo):
         
         # Obtener clases
         cursor.execute('''
-            SELECT dia, hora_inicio, hora_fin, tipo
-            FROM clases
-            WHERE curso_codigo = ?
-            ORDER BY dia, hora_inicio
-        ''', (codigo,))
+                SELECT dia, hora_inicio, hora_fin, tipo, sede
+                FROM clases
+                WHERE curso_codigo = ?
+                ORDER BY dia, hora_inicio
+            ''', (codigo,))
         clases = [dict(row) for row in cursor.fetchall()]
         
         conn.close()

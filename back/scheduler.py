@@ -30,7 +30,7 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     
     # Obtener clases
     cursor.execute('''
-        SELECT dia, hora_inicio, hora_fin, tipo
+        SELECT dia, hora_inicio, hora_fin, tipo, sede
         FROM clases
         WHERE curso_codigo = ?
         ORDER BY dia, hora_inicio

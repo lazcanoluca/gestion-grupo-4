@@ -88,22 +88,27 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
         if len(clases_dia) < 2:
             continue
         
-        # Extraer sedes únicas (asumimos que aulas con letras similares = misma sede)
-        # Por ahora, detectamos si hay "PC" vs otras aulas
         sedes = set()
         for item in clases_dia:
-            aula = item['clase'].get('aula', '')
-            if 'PC' in aula or 'pc' in aula.lower():
-                sedes.add('Paseo Colón')
-            elif 'LH' in aula or 'lh' in aula.lower():
-                sedes.add('Las Heras')
-            elif aula and aula != 'Aula a determinar':
-                sedes.add('Sede Principal')
-        
-        if len(sedes) > 1:
+            sede = item['clase'].get('sede', 'Sede desconocida')
+            sedes.add(sede)
+
+        # ignoramos las catedras con sedes desconocidas
+        sedes_conocidas = {s for s in sedes if s != 'Sede desconocida'}
+
+        if len(sedes_conocidas) > 1:
+
+            sedes_nombres = {
+                'PC': 'Paseo Colón',
+                'LH': 'Las Heras',
+                'Sede desconocida': 'Sede desconocida'
+            }
+
+            sedes_str = ' y '.join(sedes_nombres.get(s, s) for s in sedes)
+
             desventajas.append({
                 'tipo': 'cambio_sede',
-                'texto': f'{HORAS_NOMBRE[dia]}: Cambio de sede',
+                'texto': f'{HORAS_NOMBRE[dia]}: Cambio de sede ({sedes_str})',
                 'icono': '🚌',
                 'color': 'red'
             })

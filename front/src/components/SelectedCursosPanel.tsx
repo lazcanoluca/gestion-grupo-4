@@ -11,7 +11,7 @@ interface SelectedCursosPanelProps {
   cursos: CursoSeleccionadoMini[]
   onGenerarPlanes: (prioridades: Record<string, number>) => void
   onRemove: (codigo: string) => void
-  prioridadesIniciales?: Record<string, number> // 🔥 NUEVO: Para mantener prioridades
+  prioridadesIniciales?: Record<string, number>
 }
 
 const PRIORIDAD_LABELS = {
@@ -26,12 +26,12 @@ export function SelectedCursosPanel({
   cursos, 
   onGenerarPlanes, 
   onRemove,
-  prioridadesIniciales = {} // 🔥 NUEVO
+  prioridadesIniciales = {}
 }: SelectedCursosPanelProps) {
   // 🔥 Inicializar con prioridades previas si existen
   const [prioridades, setPrioridades] = useState<Record<string, number>>(prioridadesIniciales)
   const [mostrarAyuda, setMostrarAyuda] = useState(false)
-  const [mostrarPanel, setMostrarPanel] = useState(false) // 🔥 NUEVO: Panel colapsable
+  const [mostrarPanel, setMostrarPanel] = useState(false)
 
   const hayCursos = cursos.length > 0
 

@@ -381,7 +381,7 @@ function App() {
         {loggedInUser && activeScreen === "calendario" && (
           <WeeklyCalendar
             planesGenerados={planesGenerados}
-            onBack={() => setActiveScreen("seleccion")}   // ← NUEVO
+            onBack={() => setActiveScreen("seleccion")} 
             onLimpiarPlanes={() => {
               handleLimpiarPlanes();
               setActiveScreen("seleccion");
