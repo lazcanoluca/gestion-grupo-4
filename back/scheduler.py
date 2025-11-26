@@ -15,7 +15,7 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     # Obtener info del curso y materia
     cursor.execute('''
         SELECT 
-            c.codigo, c.numero_curso, c.catedra, c.periodo,
+            c.codigo, c.numero_curso, c.catedra, c.periodo, c.sede, c.modalidad, c.votos_modalidad,
             m.codigo as materia_codigo, m.nombre as materia_nombre
         FROM cursos c
         JOIN materias m ON c.materia_codigo = m.codigo
@@ -30,7 +30,7 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     
     # Obtener clases
     cursor.execute('''
-        SELECT dia, hora_inicio, hora_fin, tipo, sede
+        SELECT dia, hora_inicio, hora_fin
         FROM clases
         WHERE curso_codigo = ?
         ORDER BY dia, hora_inicio
@@ -52,6 +52,8 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
         'numero_curso': curso['numero_curso'],
         'catedra': curso['catedra'],
         'periodo': curso['periodo'],
+        'sede': curso['sede'],
+        'modalidad': curso['modalidad'],
         'materia': {
             'codigo': curso['materia_codigo'],
             'nombre': curso['materia_nombre']

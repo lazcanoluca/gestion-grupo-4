@@ -83,17 +83,17 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
                 })
     
     # Sedes diferentes en un mismo día
-    # (asumiendo que tenemos info de sede/aula)
+    # (si no se tiene info de sede, se ignora)
     for dia, clases_dia in clases_por_dia.items():
         if len(clases_dia) < 2:
             continue
         
         sedes = set()
         for item in clases_dia:
-            sede = item['clase'].get('sede', 'Sede desconocida')
+            sede = item['curso'].get('sede', 'Sede desconocida')
             sedes.add(sede)
 
-        # ignoramos las catedras con sedes desconocidas
+        # las sedes desconocidas se ignoran
         sedes_conocidas = {s for s in sedes if s != 'Sede desconocida'}
 
         if len(sedes_conocidas) > 1:
@@ -103,7 +103,6 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
                 'LH': 'Las Heras',
                 'Sede desconocida': 'Sede desconocida'
             }
-
             sedes_str = ' y '.join(sedes_nombres.get(s, s) for s in sedes)
 
             desventajas.append({

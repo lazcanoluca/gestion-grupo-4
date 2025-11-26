@@ -51,6 +51,9 @@ def init_db():
             numero_curso TEXT NOT NULL,
             catedra TEXT,
             periodo TEXT NOT NULL,
+            sede TEXT DEFAULT 'Sede desconocida',
+            modalidad TEXT DEFAULT 'sin_confirmar',
+            votos_modalidad INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (materia_codigo) REFERENCES materias(codigo) ON DELETE CASCADE,
             UNIQUE(materia_codigo, numero_curso, periodo)
@@ -84,8 +87,6 @@ def init_db():
             dia INTEGER NOT NULL,
             hora_inicio TEXT NOT NULL,
             hora_fin TEXT NOT NULL,
-            sede TEXT DEFAULT 'Sede desconocida',
-            tipo TEXT,
             FOREIGN KEY (curso_codigo) REFERENCES cursos(codigo) ON DELETE CASCADE
         )
     ''')
@@ -282,23 +283,93 @@ def health():
         'database': 'connected' if os.path.exists(DATABASE) else 'not found'
     }), 200
 
-def migrate_db_add_sede():
+def migrate_db_add_sede_modalidad():
     """
-    Migración: agregar columna 'sede' a la tabla clases y eliminar 'aula'
+    Migración: agregar columnas 'sede' y 'modalidad' a la tabla cursos,
+    y eliminar columna 'sede' de clases si existe
     """
     conn = get_db()
     cursor = conn.cursor()
     
     try:
-        # Verificar si la columna sede ya existe
-        cursor.execute("PRAGMA table_info(clases)")
-        columns = [row[1] for row in cursor.fetchall()]
+        # === MIGRAR TABLA CURSOS ===
+        cursor.execute("PRAGMA table_info(cursos)")
+        cursos_columns = [row[1] for row in cursor.fetchall()]
         
-        if 'sede' not in columns:
-            print("🔄 Migrando tabla clases: agregando columna 'sede'...")
+        needs_migration = 'sede' not in cursos_columns or 'modalidad' not in cursos_columns
+        
+        if needs_migration:
+            print("🔄 Migrando tabla cursos: agregando 'sede' y 'modalidad'...")
             
-            # SQLite no permite DROP COLUMN fácilmente, así que recreamos la tabla
-            # 1. Crear tabla temporal con nueva estructura
+            # Crear tabla temporal con nueva estructura
+            cursor.execute('''
+                CREATE TABLE cursos_new (
+                    codigo TEXT PRIMARY KEY,
+                    materia_codigo TEXT NOT NULL,
+                    numero_curso TEXT NOT NULL,
+                    catedra TEXT,
+                    periodo TEXT NOT NULL,
+                    sede TEXT DEFAULT 'Sede desconocida',
+                    modalidad TEXT DEFAULT 'sin_confirmar',
+                    votos_modalidad INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (materia_codigo) REFERENCES materias(codigo) ON DELETE CASCADE,
+                    UNIQUE(materia_codigo, numero_curso, periodo)
+                )
+            ''')
+            
+            # Copiar datos existentes
+            if 'sede' in cursos_columns and 'modalidad' in cursos_columns:
+                # Ya tiene ambas columnas
+                cursor.execute('''
+                    INSERT INTO cursos_new 
+                    SELECT * FROM cursos
+                ''')
+            elif 'sede' in cursos_columns:
+                # Tiene sede pero no modalidad
+                cursor.execute('''
+                    INSERT INTO cursos_new 
+                    (codigo, materia_codigo, numero_curso, catedra, periodo, sede, modalidad, votos_modalidad, created_at)
+                    SELECT codigo, materia_codigo, numero_curso, catedra, periodo, sede, 'sin_confirmar', 0, created_at
+                    FROM cursos
+                ''')
+            elif 'modalidad' in cursos_columns:
+                # Tiene modalidad pero no sede
+                cursor.execute('''
+                    INSERT INTO cursos_new 
+                    (codigo, materia_codigo, numero_curso, catedra, periodo, sede, modalidad, votos_modalidad, created_at)
+                    SELECT codigo, materia_codigo, numero_curso, catedra, periodo, 'Sede desconocida', modalidad, 
+                           COALESCE(votos_modalidad, 0), created_at
+                    FROM cursos
+                ''')
+            else:
+                # No tiene ninguna
+                cursor.execute('''
+                    INSERT INTO cursos_new 
+                    (codigo, materia_codigo, numero_curso, catedra, periodo, created_at)
+                    SELECT codigo, materia_codigo, numero_curso, catedra, periodo, created_at
+                    FROM cursos
+                ''')
+            
+            cursor.execute('DROP TABLE cursos')
+            cursor.execute('ALTER TABLE cursos_new RENAME TO cursos')
+            
+            # Recrear índices
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_cursos_materia ON cursos(materia_codigo)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_cursos_periodo ON cursos(periodo)')
+            
+            print("✅ Tabla cursos migrada: 'sede' y 'modalidad' agregadas")
+        else:
+            print("ℹ️  Tabla cursos ya tiene 'sede' y 'modalidad'")
+        
+        # === MIGRAR TABLA CLASES (eliminar columna sede si existe) ===
+        cursor.execute("PRAGMA table_info(clases)")
+        clases_columns = [row[1] for row in cursor.fetchall()]
+        
+        if 'sede' in clases_columns:
+            print("🔄 Migrando tabla clases: eliminando columna 'sede'...")
+            
+            # Crear tabla sin sede
             cursor.execute('''
                 CREATE TABLE clases_new (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -306,50 +377,28 @@ def migrate_db_add_sede():
                     dia INTEGER NOT NULL,
                     hora_inicio TEXT NOT NULL,
                     hora_fin TEXT NOT NULL,
-                    sede TEXT DEFAULT 'Sede desconocida',
                     tipo TEXT,
                     FOREIGN KEY (curso_codigo) REFERENCES cursos(codigo) ON DELETE CASCADE
                 )
             ''')
             
-            # 2. Copiar datos existentes (intentando extraer sede de aula si existe)
-            if 'aula' in columns:
-                cursor.execute('''
-                    INSERT INTO clases_new (id, curso_codigo, dia, hora_inicio, hora_fin, sede, tipo)
-                    SELECT 
-                        id, 
-                        curso_codigo, 
-                        dia, 
-                        hora_inicio, 
-                        hora_fin,
-                        CASE 
-                            WHEN aula LIKE '%PC%' THEN 'PC'
-                            WHEN aula LIKE '%LH%' THEN 'LH'
-                            ELSE 'Sede desconocida'
-                        END as sede,
-                        tipo
-                    FROM clases
-                ''')
-            else:
-                cursor.execute('''
-                    INSERT INTO clases_new (id, curso_codigo, dia, hora_inicio, hora_fin, sede, tipo)
-                    SELECT id, curso_codigo, dia, hora_inicio, hora_fin, 'Sede desconocida', tipo
-                    FROM clases
-                ''')
+            # Copiar datos (sin sede)
+            cursor.execute('''
+                INSERT INTO clases_new (id, curso_codigo, dia, hora_inicio, hora_fin, tipo)
+                SELECT id, curso_codigo, dia, hora_inicio, hora_fin, tipo
+                FROM clases
+            ''')
             
-            # 3. Eliminar tabla vieja
             cursor.execute('DROP TABLE clases')
-            
-            # 4. Renombrar tabla nueva
             cursor.execute('ALTER TABLE clases_new RENAME TO clases')
-            
-            # 5. Recrear índice
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_clases_curso ON clases(curso_codigo)')
             
-            conn.commit()
-            print("✅ Migración completada: columna 'sede' agregada, columna 'aula' eliminada")
+            print("✅ Tabla clases migrada: columna 'sede' eliminada")
         else:
-            print("ℹ️  Columna 'sede' ya existe en la tabla clases")
+            print("ℹ️  Tabla clases ya no tiene columna 'sede'")
+        
+        conn.commit()
+        print("✅ Migración completada exitosamente")
     
     except Exception as e:
         print(f"❌ Error en migración: {e}")
@@ -367,7 +416,7 @@ if __name__ == '__main__':
     else:
         print('Database already exists')
         init_db()  # Asegurar que todas las tablas existan
-        migrate_db_add_sede()
+        migrate_db_add_sede_modalidad()
     
     print('\n' + '='*50)
     print('🚀 Flask Backend Started')
