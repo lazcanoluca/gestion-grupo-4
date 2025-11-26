@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from feedback import (
-    init_feedback_tables,
     enviar_feedback,
     obtener_modalidad_curso,
     obtener_feedbacks_pendientes,
@@ -8,9 +7,6 @@ from feedback import (
 )
 
 feedback_bp = Blueprint('feedback', __name__)
-
-# Inicializar tablas al cargar
-init_feedback_tables()
 
 @feedback_bp.route('/enviar', methods=['POST'])
 def enviar_feedback_endpoint():
