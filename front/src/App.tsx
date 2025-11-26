@@ -99,6 +99,8 @@ function App() {
     Record<string, number>
   >({});
 
+  const [sedePreferida, setSedePreferida] = useState("ANY");
+  const [modalidadPreferida, setModalidadPreferida] = useState("ANY");
   const [maxPlanes, setMaxPlanes] = useState(500); // valor por defecto
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -159,6 +161,10 @@ function App() {
             cursos: cursosSeleccionadosCodigos,
             prioridades: prioridades,
             max_planes: maxPlanes,
+            preferencias: {
+              sede: sedePreferida,
+              modalidad: modalidadPreferida,
+            },
         }),
         }
       );
@@ -373,7 +379,12 @@ function App() {
             prioridadesGuardadas={prioridadesGuardadas}
             onToggleCurso={handleToggleCurso}
             onGenerarPlanes={handleGenerarPlanes}
+            sedePreferida={sedePreferida}
+            modalidadPreferida={modalidadPreferida}
             maxPlanes={maxPlanes}
+
+            setSedePreferida={setSedePreferida}
+            setModalidadPreferida={setModalidadPreferida}
             setMaxPlanes={setMaxPlanes}
         />
         )}

@@ -14,7 +14,10 @@ interface Props {
   onToggleCurso: (curso: CursoSeleccionado) => void;
   onGenerarPlanes: (p: Record<string, number>) => void;
 
-  // 👉 AGREGAR ESTAS DOS NUEVAS PROPS
+  sedePreferida: string;
+  setSedePreferida: (value: string) => void;
+  modalidadPreferida: string;
+  setModalidadPreferida: (value: string) => void;
   maxPlanes: number;
   setMaxPlanes: (value: number) => void;
 }
@@ -26,7 +29,10 @@ export default function PantallaSeleccion({
   onToggleCurso,
   onGenerarPlanes,
 
-  // 👉 AGREGARLAS TAMBIÉN ACÁ
+  sedePreferida,
+  setSedePreferida,
+  modalidadPreferida,
+  setModalidadPreferida,
   maxPlanes,
   setMaxPlanes,
 }: Props) {
@@ -71,13 +77,15 @@ export default function PantallaSeleccion({
               Sede
             </label>
             <select
+              value={sedePreferida} 
+              onChange={(e) => setSedePreferida(e.target.value)}
               id="sede-select"
               defaultValue=""
               className="w-full border rounded px-2 py-1 mt-1"
             >
-              <option value="">Cualquiera</option>
-              <option value="PB">PB</option>
-              <option value="Paseo Colon">Paseo Colón</option>
+              <option value="ANY">Cualquiera</option>
+              <option value="PC">Paseo Colón</option>
+              <option value="LH">Las Heras</option>
             </select>
           </div>
 
@@ -87,11 +95,13 @@ export default function PantallaSeleccion({
               Modalidad
             </label>
             <select
+              value={modalidadPreferida} 
+              onChange={(e) => setModalidadPreferida(e.target.value)}
               id="modalidad-select"
               defaultValue=""
               className="w-full border rounded px-2 py-1 mt-1"
             >
-              <option value="">Cualquiera</option>
+              <option value="ANY">Cualquiera</option>
               <option value="Presencial">Presencial</option>
               <option value="Virtual">Virtual</option>
             </select>

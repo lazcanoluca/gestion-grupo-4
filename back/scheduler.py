@@ -7,6 +7,32 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def curso_cumple_preferencias(curso: Dict, prefs: Dict[str, str]) -> bool:
+    """
+    Devuelve True si el curso coincide con las preferencias del usuario.
+    - Los cursos con datos desconocidos o sin confirmar NO se filtran.
+    """
+
+    sede_pref = prefs.get("sede", "ANY")
+    mod_pref = prefs.get("modalidad", "ANY")
+
+    # Sede desconocida → se acepta siempre
+    sede_curso = curso['sede']
+    if sede_curso not in ("PC", "LH"):
+        sede_ok = True
+    else:
+        sede_ok = (sede_pref == "ANY" or sede_curso == sede_pref)
+
+    # Modalidad sin_confirmar → se acepta siempre
+    modalidad_curso = curso['modalidad']
+    if modalidad_curso not in ("Presencial", "Virtual"):
+        mod_ok = True
+    else:
+        mod_ok = (mod_pref == "ANY" or modalidad_curso == mod_pref)
+
+    return sede_ok and mod_ok
+
+
 def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     """Obtiene todos los datos de un curso desde la BD"""
     conn = get_db()
