@@ -1,12 +1,30 @@
-const SEMANA = [
-  "Domingo",
-  "Lunes",
-  "Martes",
-  "Miércoles",
-  "Jueves",
-  "Viernes",
-  "Sábado",
-];
+const SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+/**
+ * Extrae la sede de un string de aula
+ * Busca "PC" o "LH" (con o sin espacio antes del guion)
+ * Ejemplos:
+ *   "510 - PC" -> "PC"
+ *   "510-PC" -> "PC"
+ *   "107-LH" -> "LH"
+ *   "Aula a determinar" -> "Sede desconocida" (no menciona PC ni LH)
+ *   "203-PC" -> "PC"
+ *   "Clase Virtual-PC" -> "PC"
+ */
+function extraerSede(aulaStr) {
+  if (!aulaStr) return "Sede desconocida";
+  
+  const aulaUpper = aulaStr.toUpperCase();
+  
+  if (aulaUpper.includes("PC")) {
+    return "PC";
+  }
+  if (aulaUpper.includes("LH")) {
+    return "LH";
+  }
+  
+  return "Sede desconocida";
+}
 
 export function parseSIU(rawdata) {
   // en windows los saltos de linea son \r\n, asi que los borramos para que el parser funcione sin importar el sistema operativo
@@ -66,8 +84,6 @@ export function parseSIU(rawdata) {
         const docentes = cursoMatch[2].trim().replace(/\(.*?\)/g, "").trim();
         const clasesText = cursoMatch[3];
         
-        // 🔥 ARREGLO: Parsear correctamente la comisión
-        // Formato: "CURSO: 02-Buchwald" o "CURSO: 1" o "02-Buchwald" o "1"
         let numeroCurso = comisionRaw;
         let nombreCatedra = null;
         
@@ -78,7 +94,7 @@ export function parseSIU(rawdata) {
         if (comision.includes('-')) {
           const parts = comision.split('-');
           numeroCurso = parts[0].trim();
-          nombreCatedra = parts.slice(1).join('-').trim(); // Por si hay más guiones
+          nombreCatedra = parts.slice(1).join('-').trim();
         } else {
           numeroCurso = comision;
           nombreCatedra = null;
@@ -95,6 +111,8 @@ export function parseSIU(rawdata) {
         console.error(`      Clases text length: ${clasesText.length}`);
 
         const clases = [];
+        let sedeCurso = "Sede desconocida"; // Sede a nivel de curso
+        
         const lines = clasesText.split('\n');
         
         for (let claseLine of lines) {
@@ -139,6 +157,15 @@ export function parseSIU(rawdata) {
             continue;
           }
           
+          // Si fija las sedes de las clases para asignarsela al curso
+          if (parts.length >= 4) {
+            const aulaStr = parts[parts.length - 1];
+            const sedeDetectada = extraerSede(aulaStr);
+            if (sedeDetectada !== "Sede desconocida") {
+              sedeCurso = sedeDetectada;
+            }
+          }
+          
           const [inicio, fin] = horario.split(/\s+a\s+/);
           const clase = {
             dia: diaIndex,
@@ -154,6 +181,8 @@ export function parseSIU(rawdata) {
           console.error(`      No valid clases found, skipping curso`);
           continue;
         }
+        
+        console.error(`      Sede del curso: ${sedeCurso}`);
 
         periodo.cursos.push({
           materia: materiaCodigo,
@@ -161,6 +190,7 @@ export function parseSIU(rawdata) {
           numero: numeroCurso,
           catedra: nombreCatedra,
           docentes: docentes,
+          sede: sedeCurso,
           clases,
         });
         materia.cursos.push(cursoCodigo);

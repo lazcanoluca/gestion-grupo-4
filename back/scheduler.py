@@ -7,6 +7,32 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def curso_cumple_preferencias(curso: Dict, prefs: Dict[str, str]) -> bool:
+    """
+    Devuelve True si el curso coincide con las preferencias del usuario.
+    - Los cursos con datos desconocidos o sin confirmar NO se filtran.
+    """
+
+    sede_pref = prefs.get("sede", "ANY")
+    mod_pref = prefs.get("modalidad", "ANY")
+
+    # Sede desconocida → se acepta siempre
+    sede_curso = curso['sede']
+    if sede_curso not in ("PC", "LH"):
+        sede_ok = True
+    else:
+        sede_ok = (sede_pref == "ANY" or sede_curso == sede_pref)
+
+    # Modalidad sin_confirmar → se acepta siempre
+    modalidad_curso = curso['modalidad']
+    if modalidad_curso not in ("Presencial", "Virtual"):
+        mod_ok = True
+    else:
+        mod_ok = (mod_pref == "ANY" or modalidad_curso == mod_pref)
+
+    return sede_ok and mod_ok
+
+
 def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     """Obtiene todos los datos de un curso desde la BD"""
     conn = get_db()
@@ -15,7 +41,7 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     # Obtener info del curso y materia
     cursor.execute('''
         SELECT 
-            c.codigo, c.numero_curso, c.catedra, c.periodo,
+            c.codigo, c.numero_curso, c.catedra, c.periodo, c.sede, c.modalidad, c.votos_modalidad,
             m.codigo as materia_codigo, m.nombre as materia_nombre
         FROM cursos c
         JOIN materias m ON c.materia_codigo = m.codigo
@@ -24,12 +50,13 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
     
     curso = cursor.fetchone()
     if not curso:
+        print(f"No se encontro el curso con codigo {curso_codigo}")
         conn.close()
         return None
     
     # Obtener clases
     cursor.execute('''
-        SELECT dia, hora_inicio, hora_fin, tipo
+        SELECT dia, hora_inicio, hora_fin
         FROM clases
         WHERE curso_codigo = ?
         ORDER BY dia, hora_inicio
@@ -51,6 +78,8 @@ def obtener_datos_curso(curso_codigo: str) -> Dict[str, Any]:
         'numero_curso': curso['numero_curso'],
         'catedra': curso['catedra'],
         'periodo': curso['periodo'],
+        'sede': curso['sede'],
+        'modalidad': curso['modalidad'],
         'materia': {
             'codigo': curso['materia_codigo'],
             'nombre': curso['materia_nombre']

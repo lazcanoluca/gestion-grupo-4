@@ -113,9 +113,17 @@ def parse_siu():
                             # 3. Insertar curso
                             cursor.execute('''
                                 INSERT OR REPLACE INTO cursos 
-                                (codigo, materia_codigo, numero_curso, catedra, periodo)
-                                VALUES (?, ?, ?, ?, ?)
-                            ''', (curso_codigo, materia['codigo'], numero_curso, catedra, periodo))
+                                (codigo, materia_codigo, numero_curso, catedra, periodo, sede, modalidad, votos_modalidad)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            ''', (curso_codigo, 
+                                materia['codigo'], 
+                                numero_curso, 
+                                catedra, 
+                                periodo,
+                                curso.get('sede', 'Sede desconocida'),
+                                'sin_confirmar',
+                                0
+                            ))
                             
                             # Limpiar docentes y clases anteriores
                             cursor.execute('DELETE FROM curso_docentes WHERE curso_codigo = ?', (curso_codigo,))
@@ -143,14 +151,13 @@ def parse_siu():
                             for clase in curso['clases']:
                                 cursor.execute('''
                                     INSERT INTO clases 
-                                    (curso_codigo, dia, hora_inicio, hora_fin, tipo)
-                                    VALUES (?, ?, ?, ?, ?)
+                                    (curso_codigo, dia, hora_inicio, hora_fin)
+                                    VALUES (?, ?, ?, ?)
                                 ''', (
                                     curso_codigo,
                                     clase['dia'],
                                     clase['inicio'],
-                                    clase['fin'],
-                                    clase.get('tipo')
+                                    clase['fin']
                                 ))
                             
                             saved_count += 1
@@ -230,7 +237,6 @@ def get_materias():
 @siu_bp.route('/materias/<codigo>/cursos', methods=['GET'])
 def get_cursos_de_materia(codigo):
     """
-    🔥 NUEVO: Obtener todos los cursos de una materia específica
     Ejemplo: GET /api/siu/materias/61.03/cursos
     """
     try:
@@ -252,7 +258,7 @@ def get_cursos_de_materia(codigo):
         
         # Query base para cursos
         query = '''
-            SELECT codigo, numero_curso, catedra, periodo
+            SELECT codigo, numero_curso, catedra, periodo, sede, modalidad, votos_modalidad
             FROM cursos
             WHERE materia_codigo = ?
         '''
@@ -289,7 +295,7 @@ def get_cursos_de_materia(codigo):
             
             # Obtener clases
             cursor.execute('''
-                SELECT dia, hora_inicio, hora_fin, tipo, aula
+                SELECT dia, hora_inicio, hora_fin
                 FROM clases
                 WHERE curso_codigo = ?
                 ORDER BY dia, hora_inicio
@@ -344,7 +350,7 @@ def get_cursos():
         # Query base
         query = '''
             SELECT 
-                c.codigo, c.numero_curso, c.catedra, c.periodo,
+                c.codigo, c.numero_curso, c.catedra, c.periodo, c.sede, c.modalidad, c.votos_modalidad,
                 m.codigo as materia_codigo, m.nombre as materia_nombre
             FROM cursos c
             JOIN materias m ON c.materia_codigo = m.codigo
@@ -379,7 +385,7 @@ def get_cursos():
             
             # Obtener clases
             cursor.execute('''
-                SELECT dia, hora_inicio, hora_fin, tipo
+                SELECT dia, hora_inicio, hora_fin
                 FROM clases
                 WHERE curso_codigo = ?
                 ORDER BY dia, hora_inicio
@@ -428,7 +434,7 @@ def get_curso(codigo):
         # Obtener curso y materia
         cursor.execute('''
             SELECT 
-                c.codigo, c.numero_curso, c.catedra, c.periodo,
+                c.codigo, c.numero_curso, c.catedra, c.periodo, c.sede, c.modalidad, c.votos_modalidad,
                 m.codigo as materia_codigo, m.nombre as materia_nombre
             FROM cursos c
             JOIN materias m ON c.materia_codigo = m.codigo
@@ -453,11 +459,11 @@ def get_curso(codigo):
         
         # Obtener clases
         cursor.execute('''
-            SELECT dia, hora_inicio, hora_fin, tipo
-            FROM clases
-            WHERE curso_codigo = ?
-            ORDER BY dia, hora_inicio
-        ''', (codigo,))
+                SELECT dia, hora_inicio, hora_fin
+                FROM clases
+                WHERE curso_codigo = ?
+                ORDER BY dia, hora_inicio
+            ''', (codigo,))
         clases = [dict(row) for row in cursor.fetchall()]
         
         conn.close()
