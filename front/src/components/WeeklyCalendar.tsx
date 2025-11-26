@@ -43,8 +43,15 @@ interface Plan {
   analisis?: Analisis
 }
 
+interface HorarioBloqueado {
+  dia: number
+  hora_inicio: string
+  hora_fin: string
+}
+
 interface WeeklyCalendarProps {
   planesGenerados?: Plan[]
+  horariosExcluidos?: HorarioBloqueado[]  // 👈 NUEVO
   onBack?: () => void
   onLimpiarPlanes?: () => void
 }
@@ -148,6 +155,7 @@ function TooltipAnalisis({ analisis }: { analisis: Analisis }) {
 
 export function WeeklyCalendar({
   planesGenerados = [],
+  horariosExcluidos = [],  // 👈 NUEVO
   onBack,
   onLimpiarPlanes,
 }: WeeklyCalendarProps) {
@@ -192,6 +200,51 @@ export function WeeklyCalendar({
 
   const formatearHora = (hora: string) => hora.substring(0, 5)
 
+  // 👇 NUEVA FUNCIÓN: Renderizar horario bloqueado
+  const renderHorarioBloqueado = (
+    horario: HorarioBloqueado,
+    horaActual: number
+  ) => {
+    const horaInicio = parseInt(horario.hora_inicio.split(':')[0])
+    const minutoInicio = parseInt(horario.hora_inicio.split(':')[1])
+    const horaFin = parseInt(horario.hora_fin.split(':')[0])
+    const minutoFin = parseInt(horario.hora_fin.split(':')[1])
+
+    if (horaInicio !== horaActual) return null
+
+    const duracionMinutos =
+      horaFin * 60 + minutoFin - (horaInicio * 60 + minutoInicio)
+
+    const alturaBase = window.innerHeight / 16
+    const alturaPx = (duracionMinutos / 60) * alturaBase
+    const offsetTop = (minutoInicio / 60) * alturaBase
+
+    return (
+      <div
+        key={`blocked-${horario.dia}-${horario.hora_inicio}`}
+        className="absolute left-0 right-0 mx-1 rounded-lg border-2 border-red-400 bg-red-50/80 p-2 overflow-hidden shadow-sm z-5"
+        style={{
+          top: `${offsetTop}px`,
+          height: `${alturaPx}px`,
+          backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.1) 10px, rgba(239, 68, 68, 0.1) 20px)',
+        }}
+      >
+        <div className="text-xs font-semibold text-red-700 flex items-center gap-1">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+          </svg>
+          Bloqueado
+        </div>
+        <div className="text-xs text-red-600">
+          {formatearHora(horario.hora_inicio)} - {formatearHora(horario.hora_fin)}
+        </div>
+        <div className="text-xs text-red-500 opacity-75">
+          Actividad extracurricular
+        </div>
+      </div>
+    )
+  }
+
   const renderClaseEnCalendario = (
     curso: Curso,
     clase: Clase,
@@ -205,17 +258,14 @@ export function WeeklyCalendar({
     if (horaInicio !== horaActual) return null
 
     const duracionMinutos =
-      horaFin * 60 +
-      minutoFin -
-      (horaInicio * 60 + minutoInicio)
+      horaFin * 60 + minutoFin - (horaInicio * 60 + minutoInicio)
 
     const alturaBase = window.innerHeight / 16
     const alturaPx = (duracionMinutos / 60) * alturaBase
     const offsetTop = (minutoInicio / 60) * alturaBase
 
     const color =
-      coloresPorMateria[curso.materia.codigo] ||
-      COLORES_MATERIAS[0]
+      coloresPorMateria[curso.materia.codigo] || COLORES_MATERIAS[0]
 
     return (
       <div
@@ -230,18 +280,13 @@ export function WeeklyCalendar({
           {curso.materia.nombre} - {curso.catedra || curso.numero_curso}
         </div>
         <div className="text-xs truncate">
-          {formatearHora(clase.hora_inicio)} -{' '}
-          {formatearHora(clase.hora_fin)}
+          {formatearHora(clase.hora_inicio)} - {formatearHora(clase.hora_fin)}
         </div>
         {curso.catedra && (
-          <div className="text-xs truncate opacity-75">
-            {curso.catedra}
-          </div>
+          <div className="text-xs truncate opacity-75">{curso.catedra}</div>
         )}
         {clase.tipo && (
-          <div className="text-xs truncate opacity-75">
-            {clase.tipo}
-          </div>
+          <div className="text-xs truncate opacity-75">{clase.tipo}</div>
         )}
       </div>
     )
@@ -275,13 +320,10 @@ export function WeeklyCalendar({
   }
 
   const planActual =
-    planesGenerados.length > 0
-      ? planesGenerados[planSeleccionado]
-      : null
+    planesGenerados.length > 0 ? planesGenerados[planSeleccionado] : null
 
   return (
-    <div className="h-full flex flex-col bg-white">
-
+    <div className="h-full flex flex-col bg-white dark:bg-gray-900">
       <style>{`
         @keyframes tooltipFadeIn {
           from {
@@ -300,17 +342,15 @@ export function WeeklyCalendar({
 
       {/* PLAN SWITCHER */}
       {planesGenerados.length > 0 && (
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2 overflow-x-auto">
-          
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center gap-2 overflow-x-auto">
           <div className="flex gap-2">
             {planesGenerados.map((plan, index) => {
-              const analisis =
-                plan.analisis || {
-                  ventajas: [],
-                  desventajas: [],
-                  score: 50,
-                  total_flags: 0,
-                }
+              const analisis = plan.analisis || {
+                ventajas: [],
+                desventajas: [],
+                score: 50,
+                total_flags: 0,
+              }
 
               return (
                 <div key={plan.id} className="relative inline-block">
@@ -320,15 +360,13 @@ export function WeeklyCalendar({
                       className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-all ${
                         planSeleccionado === index
                           ? 'bg-blue-500 text-white shadow-md'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                     >
                       Plan {index + 1}
                       <span className="ml-2 text-xs opacity-75">
                         ({plan.cursos.length}{' '}
-                        {plan.cursos.length === 1
-                          ? 'materia'
-                          : 'materias'})
+                        {plan.cursos.length === 1 ? 'materia' : 'materias'})
                       </span>
                       <span
                         className={`ml-2 inline-block w-2 h-2 rounded-full ${getScoreBadgeColor(
@@ -341,22 +379,16 @@ export function WeeklyCalendar({
                       ref={(el) => {
                         if (el) {
                           el.onclick = (e) =>
-                            handleInfoButtonClick(
-                              e as any,
-                              index,
-                              el
-                            )
+                            handleInfoButtonClick(e as any, index, el)
                         }
                       }}
                       data-info-btn
                       className={`p-1.5 rounded-full transition-all ${
                         planSeleccionado === index
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                       } ${
-                        tooltipAbierto === index
-                          ? 'ring-2 ring-blue-400'
-                          : ''
+                        tooltipAbierto === index ? 'ring-2 ring-blue-400' : ''
                       }`}
                       title="Ver análisis del plan"
                     >
@@ -403,72 +435,44 @@ export function WeeklyCalendar({
       )}
 
       {/* TOOLTIP */}
-      {tooltipAbierto !== null &&
-        planesGenerados[tooltipAbierto] && (
-          <div
-            data-tooltip
-            onClick={(e) => e.stopPropagation()}
-            className="
-              fixed 
-              rounded-xl 
-              shadow-2xl 
-              bg-white/95 
-              backdrop-blur-md 
-              tooltip-animate 
-              max-w-sm 
-              w-[22rem]
-              border border-gray-200
-              z-[99999]
-              p-1
-            "
-            style={{
-              top: `${tooltipPosition.top}px`,
-              left: `${tooltipPosition.left}px`,
-            }}
-          >
-            {/* Arrow */}
-            <div className="
-              absolute 
-              -top-2 
-              left-6 
-              w-4 
-              h-4 
-              bg-white/95 
-              backdrop-blur-md 
-              rotate-45 
-              border-l 
-              border-t 
-              border-gray-200
-            "></div>
+      {tooltipAbierto !== null && planesGenerados[tooltipAbierto] && (
+        <div
+          data-tooltip
+          onClick={(e) => e.stopPropagation()}
+          className="fixed rounded-xl shadow-2xl bg-white/95 backdrop-blur-md tooltip-animate max-w-sm w-[22rem] border border-gray-200 z-[99999] p-1"
+          style={{
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
+          }}
+        >
+          <div className="absolute -top-2 left-6 w-4 h-4 bg-white/95 backdrop-blur-md rotate-45 border-l border-t border-gray-200"></div>
 
-            <TooltipAnalisis
-              analisis={
-                planesGenerados[tooltipAbierto].analisis || {
-                  ventajas: [],
-                  desventajas: [],
-                  score: 50,
-                  total_flags: 0,
-                }
+          <TooltipAnalisis
+            analisis={
+              planesGenerados[tooltipAbierto].analisis || {
+                ventajas: [],
+                desventajas: [],
+                score: 50,
+                total_flags: 0,
               }
-            />
-          </div>
-        )}
+            }
+          />
+        </div>
+      )}
 
       {/* TAGS DE MATERIAS */}
       {planActual && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 px-4 py-3">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
           <div className="flex flex-wrap gap-2">
             {planActual.cursos.map((curso) => {
               const color =
-                coloresPorMateria[curso.materia.codigo] ||
-                COLORES_MATERIAS[0]
+                coloresPorMateria[curso.materia.codigo] || COLORES_MATERIAS[0]
               return (
                 <div
                   key={curso.codigo}
                   className={`${color} px-3 py-1 rounded-full text-xs font-medium border-2`}
                 >
-                  {curso.materia.nombre} -{' '}
-                  {curso.catedra || curso.numero_curso}
+                  {curso.materia.nombre} - {curso.catedra || curso.numero_curso}
                 </div>
               )
             })}
@@ -478,7 +482,7 @@ export function WeeklyCalendar({
 
       {/* TODO VACÍO */}
       {planesGenerados.length === 0 && (
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-black">
           <div className="text-center p-8 max-w-md">
             <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
@@ -495,10 +499,10 @@ export function WeeklyCalendar({
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
               Bienvenido al Scheduler de Materias
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Selecciona materias desde el menú y genera planes
             </p>
           </div>
@@ -509,14 +513,13 @@ export function WeeklyCalendar({
       {planActual && (
         <div className="flex-1 overflow-auto">
           <div className="inline-block min-w-full">
-            <div className="grid grid-cols-[80px_repeat(6,1fr)] border-l border-t border-gray-200">
-
-              <div className="sticky top-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-r border-gray-200 p-2"></div>
+            <div className="grid grid-cols-[80px_repeat(6,1fr)] border-l border-t border-gray-200 dark:border-gray-700">
+              <div className="sticky top-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b border-r border-gray-200 dark:border-gray-700 p-2"></div>
 
               {DIAS.map((dia) => (
                 <div
                   key={dia}
-                  className="sticky top-0 z-20 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-b border-r border-gray-200 p-3 text-center font-semibold"
+                  className="sticky top-0 z-20 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-b border-r border-gray-200 dark:border-gray-700 p-3 text-center font-semibold"
                 >
                   {dia}
                 </div>
@@ -524,38 +527,37 @@ export function WeeklyCalendar({
 
               {HORAS.map((hora) => (
                 <div key={hora} className="contents">
-                  <div className="bg-gray-50 border-b border-r border-gray-200 p-2 text-sm text-gray-600 text-right font-medium sticky left-0 z-10">
+                  <div className="bg-gray-50 dark:bg-gray-800 border-b border-r border-gray-200 dark:border-gray-700 p-2 text-sm text-gray-600 dark:text-gray-400 text-right font-medium sticky left-0 z-10">
                     {hora}:00
                   </div>
 
                   {DIAS.map((_, diaIndex) => (
                     <div
                       key={`${hora}-${diaIndex}`}
-                      className="relative border-b border-r border-gray-200 bg-white"
+                      className="relative border-b border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
                       style={{
-                        height:
-                          'calc((100vh - 200px) / 16)',
+                        height: 'calc((100vh - 200px) / 16)',
                       }}
                     >
+                      {/* 👇 RENDERIZAR HORARIOS BLOQUEADOS PRIMERO */}
+                      {horariosExcluidos
+                        .filter((horario) => horario.dia === diaIndex)
+                        .map((horario) =>
+                          renderHorarioBloqueado(horario, hora)
+                        )}
+
+                      {/* 👇 LUEGO RENDERIZAR CLASES */}
                       {planActual.cursos.map((curso) =>
                         curso.clases
-                          .filter(
-                            (clase) =>
-                              clase.dia - 1 === diaIndex
-                          )
+                          .filter((clase) => clase.dia - 1 === diaIndex)
                           .map((clase) =>
-                            renderClaseEnCalendario(
-                              curso,
-                              clase,
-                              hora
-                            )
+                            renderClaseEnCalendario(curso, clase, hora)
                           )
                       )}
                     </div>
                   ))}
                 </div>
               ))}
-
             </div>
           </div>
         </div>
