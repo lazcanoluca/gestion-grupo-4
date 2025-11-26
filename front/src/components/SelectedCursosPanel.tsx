@@ -11,7 +11,7 @@ interface SelectedCursosPanelProps {
   cursos: CursoSeleccionadoMini[]
   onGenerarPlanes: (prioridades: Record<string, number>) => void
   onRemove: (codigo: string) => void
-  prioridadesIniciales?: Record<string, number> // 🔥 NUEVO: Para mantener prioridades
+  prioridadesIniciales?: Record<string, number>
   onPrioridadesChange?: (prioridades: Record<string, number>) => void
 }
 
@@ -33,7 +33,7 @@ export function SelectedCursosPanel({
   // 🔥 Inicializar con prioridades previas si existen
   const [prioridades, setPrioridades] = useState<Record<string, number>>(prioridadesIniciales)
   const [mostrarAyuda, setMostrarAyuda] = useState(false)
-  const [mostrarPanel, setMostrarPanel] = useState(false) // 🔥 NUEVO: Panel colapsable
+  const [mostrarPanel, setMostrarPanel] = useState(false)
 
   const hayCursos = cursos.length > 0
 
@@ -197,8 +197,8 @@ export function SelectedCursosPanel({
                                   key={nivel}
                                   onClick={() => actualizarPrioridad(curso.codigo, nivel)}
                                   className={`px-2 py-0.5 text-xs rounded transition-all ${isSelected
-                                      ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                                 >
                                   {nivel}⭐
@@ -245,8 +245,8 @@ export function SelectedCursosPanel({
         onClick={handleGenerarPlanes}
         disabled={!hayCursos}
         className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all ${hayCursos
-            ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
-            : 'bg-gray-300 cursor-not-allowed'
+          ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
+          : 'bg-gray-300 cursor-not-allowed'
           }`}
       >
         {hayCursos ? `Generar Planes (${cursos.length} cursos)` : 'Generar Planes'}

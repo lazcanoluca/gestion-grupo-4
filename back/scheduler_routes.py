@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
-from scheduler import generar_planes, generar_estadisticas, obtener_datos_curso
+from scheduler import generar_planes, generar_estadisticas, obtener_datos_curso, curso_cumple_preferencias
+from plan_analyzer import analizar_plan
 
 scheduler_bp = Blueprint('scheduler', __name__)
 
@@ -15,6 +16,11 @@ def generar_planes_endpoint():
             "CB100-2": 3
         }
         "permitir_parciales": false  // Opcional, por defecto False
+        "max_planes"
+        "preferencias": {
+            "sede": "ANY", // ANY | PC | LH
+            "modalidad": "ANY", // ANY | Presencial | Virtual
+        }
     }
     """
     try:
@@ -26,21 +32,29 @@ def generar_planes_endpoint():
                 'error': 'Se requiere un campo "cursos" con la lista de códigos'
             }), 400
         
-        codigos = data['cursos']
-        # 🔥 OBTENER PRIORIDADES DEL REQUEST (no de la BD)
-        prioridades = data.get('prioridades', {})  # Por defecto: diccionario vacío
-        
+        codigos_originales = data['cursos']
+        prioridades = data.get('prioridades', {})
         max_planes = data.get('max_planes', 1000)
         permitir_parciales = data.get('permitir_parciales', False)
-        
-        if not isinstance(codigos, list) or len(codigos) == 0:
-            return jsonify({
-                'success': False,
-                'error': 'El campo "cursos" debe ser una lista no vacía'
-            }), 400
-        
+        preferencias = data.get('preferencias', {
+            'sede': 'ANY',
+            'modalidad': 'ANY'
+        })
+
+        codigos_filtrados = []
+        for codigo in codigos_originales:
+            info = obtener_datos_curso(codigo)
+            if info and curso_cumple_preferencias(info, preferencias):
+                codigos_filtrados.append(codigo)
+
+        # if not isinstance(codigos_filtrados, list) or len(codigos_filtrados) == 0:
+        #     return jsonify({
+        #         'success': False,
+        #         'error': 'El campo "cursos" debe ser una lista no vacía'
+        #     }), 400
+
         # Generar planes
-        planes = generar_planes(codigos, max_planes=max_planes, permitir_parciales=permitir_parciales)
+        planes = generar_planes(codigos_filtrados, max_planes=max_planes, permitir_parciales=permitir_parciales)
         
         if len(planes) == 0:
             return jsonify({
@@ -56,9 +70,13 @@ def generar_planes_endpoint():
             prioridad_total = sum(
                 prioridades.get(curso['codigo'], 3) for curso in plan  # Default: 3
             )
+
+            analisis = analizar_plan(plan)
+
             planes_con_prioridad.append({
                 'cursos': plan,
-                'prioridad_total': prioridad_total
+                'prioridad_total': prioridad_total,
+                'analisis': analisis
             })
         
         # Ordenar por prioridad descendente (5 = máxima prioridad)
@@ -67,14 +85,16 @@ def generar_planes_endpoint():
         # Extraer cursos manteniendo compatibilidad
         planes_ordenados = [p['cursos'] for p in planes_con_prioridad]
         prioridades_totales = [p['prioridad_total'] for p in planes_con_prioridad]
-        
-        stats = generar_estadisticas(planes_ordenados, codigos)
+        analisis_planes = [p['analisis'] for p in planes_con_prioridad]
+
+        stats = generar_estadisticas(planes_ordenados, codigos_filtrados)
         stats['prioridades_totales'] = prioridades_totales[:10]  # Primeros 10
         
         respuesta = {
             'success': True,
             'estadisticas': stats,
             'planes': planes_ordenados,
+            'analisis': analisis_planes,
             'total': len(planes_ordenados)
         }
         

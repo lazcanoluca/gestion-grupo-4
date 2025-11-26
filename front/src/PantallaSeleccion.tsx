@@ -15,14 +15,12 @@ interface Props {
   onGenerarPlanes: (p: Record<string, number>) => void;
   onPrioridadesChange: (p: Record<string, number>) => void;
 
-  // 👉 AGREGAR ESTAS DOS NUEVAS PROPS
+  sedePreferida: string;
+  setSedePreferida: (value: string) => void;
+  modalidadPreferida: string;
+  setModalidadPreferida: (value: string) => void;
   maxPlanes: number;
   setMaxPlanes: (value: number) => void;
-  preferencias: {
-    sede: string;
-    modalidad: string;
-  };
-  setPreferencias: (pref: { sede: string; modalidad: string }) => void;
 }
 
 export default function PantallaSeleccion({
@@ -33,11 +31,12 @@ export default function PantallaSeleccion({
   onGenerarPlanes,
   onPrioridadesChange,
 
-  // 👉 AGREGARLAS TAMBIÉN ACÁ
+  sedePreferida,
+  setSedePreferida,
+  modalidadPreferida,
+  setModalidadPreferida,
   maxPlanes,
   setMaxPlanes,
-  preferencias,
-  setPreferencias,
 }: Props) {
   return (
     <div className="w-full h-full grid grid-cols-3 gap-4 p-6 bg-gray-50">
@@ -82,15 +81,13 @@ export default function PantallaSeleccion({
             </label>
             <select
               id="sede-select"
-              value={preferencias.sede}
-              onChange={(e) =>
-                setPreferencias({ ...preferencias, sede: e.target.value })
-              }
+              value={sedePreferida}
+              onChange={(e) => setSedePreferida(e.target.value)}
               className="w-full border rounded px-2 py-1 mt-1"
             >
-              <option value="">Cualquiera</option>
-              <option value="PB">PB</option>
-              <option value="Paseo Colon">Paseo Colón</option>
+              <option value="ANY">Cualquiera</option>
+              <option value="PC">Paseo Colón</option>
+              <option value="LH">Las Heras</option>
             </select>
           </div>
 
@@ -101,13 +98,11 @@ export default function PantallaSeleccion({
             </label>
             <select
               id="modalidad-select"
-              value={preferencias.modalidad}
-              onChange={(e) =>
-                setPreferencias({ ...preferencias, modalidad: e.target.value })
-              }
+              value={modalidadPreferida}
+              onChange={(e) => setModalidadPreferida(e.target.value)}
               className="w-full border rounded px-2 py-1 mt-1"
             >
-              <option value="">Cualquiera</option>
+              <option value="ANY">Cualquiera</option>
               <option value="Presencial">Presencial</option>
               <option value="Virtual">Virtual</option>
             </select>

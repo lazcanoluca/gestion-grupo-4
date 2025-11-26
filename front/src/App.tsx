@@ -30,11 +30,12 @@ interface Curso {
 interface Plan {
   id: number;
   cursos: Curso[];
-}
-
-interface PreferenciasAdicionales {
-  sede: string;
-  modalidad: string;
+  analisis?: {
+    ventajas: Array<{ tipo: string, texto: string, icono: string, color: string }>;
+    desventajas: Array<{ tipo: string, texto: string, icono: string, color: string }>;
+    score: number;
+    total_flags: number;
+  }
 }
 
 interface CursoSeleccionado {
@@ -109,21 +110,15 @@ function App() {
       {}
     );
 
+  const [sedePreferida, setSedePreferida] =
+    useUserScopedPersistentState<string>(loggedInUser, "sedePreferida", "ANY");
+  const [modalidadPreferida, setModalidadPreferida] =
+    useUserScopedPersistentState<string>(loggedInUser, "modalidadPreferida", "ANY");
   const [maxPlanes, setMaxPlanes] = useUserScopedPersistentState<number>(
     loggedInUser,
     "maxPlanes",
     500
   ); // valor por defecto
-
-  const [preferenciasAdicionales, setPreferenciasAdicionales] =
-    useUserScopedPersistentState<PreferenciasAdicionales>(
-      loggedInUser,
-      "preferencias",
-      {
-        sede: "",
-        modalidad: "",
-      }
-    );
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -180,6 +175,10 @@ function App() {
             cursos: cursosSeleccionadosCodigos,
             prioridades: prioridades,
             max_planes: maxPlanes,
+            preferencias: {
+              sede: sedePreferida,
+              modalidad: modalidadPreferida,
+            },
           }),
         }
       );
@@ -197,8 +196,12 @@ function App() {
           (cursos: Curso[], index: number) => ({
             id: index,
             cursos,
+            analisis: data.analisis ? data.analisis[index] : undefined,
           })
         );
+
+        console.log('Planes con análisis:', planesConId);
+        console.log('Data completa del backend:', data);
 
         setPlanesGenerados(planesConId);
         setActiveScreen("calendario");
@@ -226,7 +229,8 @@ function App() {
     setCursosSeleccionados([]);
     setPrioridadesGuardadas({});
     setMaxPlanes(500);
-    setPreferenciasAdicionales({ sede: "", modalidad: "" });
+    setSedePreferida("ANY");
+    setModalidadPreferida("ANY");
   };
 
   // Cerrar dropdown al hacer clic fuera
@@ -393,17 +397,20 @@ function App() {
             onToggleCurso={handleToggleCurso}
             onGenerarPlanes={handleGenerarPlanes}
             onPrioridadesChange={setPrioridadesGuardadas}
+            sedePreferida={sedePreferida}
+            modalidadPreferida={modalidadPreferida}
             maxPlanes={maxPlanes}
+
+            setSedePreferida={setSedePreferida}
+            setModalidadPreferida={setModalidadPreferida}
             setMaxPlanes={setMaxPlanes}
-            preferencias={preferenciasAdicionales}
-            setPreferencias={setPreferenciasAdicionales}
           />
         )}
 
         {loggedInUser && activeScreen === "calendario" && (
           <WeeklyCalendar
             planesGenerados={planesGenerados}
-            onBack={() => setActiveScreen("seleccion")}   // ← NUEVO
+            onBack={() => setActiveScreen("seleccion")}
             onLimpiarPlanes={() => {
               handleLimpiarPlanes();
               setActiveScreen("seleccion");
