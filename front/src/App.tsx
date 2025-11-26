@@ -28,6 +28,12 @@ interface Curso {
 interface Plan {
   id: number;
   cursos: Curso[];
+  analisis?: {
+    ventajas: Array<{tipo: string, texto: string, icono: string, color: string}>;
+    desventajas: Array<{tipo: string, texto: string, icono: string, color: string}>;
+    score: number;
+    total_flags: number;
+  }
 }
 
 interface CursoSeleccionado {
@@ -170,8 +176,12 @@ function App() {
           (cursos: Curso[], index: number) => ({
             id: index,
             cursos,
+            analisis: data.analisis ? data.analisis[index] : undefined,
           })
         );
+
+        console.log('Planes con análisis:', planesConId);
+        console.log('Data completa del backend:', data);
 
         setPlanesGenerados(planesConId);
         setActiveScreen("calendario");
