@@ -5,7 +5,7 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Analiza un plan y devuelve sus características (ventajas/desventajas)
     
-    Returns:
+    Devuelve:
         Dict con:
         - ventajas: lista de dicts con {tipo, texto, icono}
         - desventajas: lista de dicts con {tipo, texto, icono}
@@ -16,13 +16,11 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
     Ventajas:
         - Días libres
         - Carga equilibrada entre días
-        - Tiempo para almorzar
     Desventajas:
         - Huecos grandes entre clases (+2 horas)
         - Cambio de sede en un mismo día
         - Días muy cargados (4+ materias)
         - Clases temprano (antes de las 9)
-        - Clases de noche (después de las 20)
     """
     ventajas = []
     desventajas = []
@@ -38,7 +36,7 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
     
     # Días libres
     dias_con_clases = set(clases_por_dia.keys())
-    dias_totales = 6  # Lunes a Sábado (0-5)
+    dias_totales = 6  # No se toma el domingo
     dias_libres = dias_totales - len(dias_con_clases)
     
     if dias_libres >= 2:
@@ -57,27 +55,24 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
         })
     
     # Clases espaciadas en un mismo día
-    HORAS_NOMBRE = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    # (Asumimos que un hueco grande es >= 2 horas)
+    HORAS_NOMBRE = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
     
     for dia, clases_dia in clases_por_dia.items():
         if len(clases_dia) < 2:
             continue
             
-        # Ordenar por hora de inicio
         clases_ordenadas = sorted(clases_dia, key=lambda x: x['clase']['hora_inicio'])
         
-        # Calcular huecos entre clases
         for i in range(len(clases_ordenadas) - 1):
             fin_actual = clases_ordenadas[i]['clase']['hora_fin']
             inicio_siguiente = clases_ordenadas[i + 1]['clase']['hora_inicio']
             
-            # Convertir a minutos
             fin_h, fin_m = map(int, fin_actual.split(':'))
             inicio_h, inicio_m = map(int, inicio_siguiente.split(':'))
             
             hueco_minutos = (inicio_h * 60 + inicio_m) - (fin_h * 60 + fin_m)
             
-            # Si hay más de 2 horas de hueco
             if hueco_minutos >= 120:
                 horas_hueco = hueco_minutos // 60
                 desventajas.append({
@@ -124,7 +119,7 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
                 'color': 'orange'
             })
     
-    # Clases temprano (antes de las 9)
+    # Clases muy temprano (antes de las 9)
     clases_tempranas = []
     for dia, clases_dia in clases_por_dia.items():
         for item in clases_dia:
@@ -141,23 +136,6 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
             'color': 'yellow'
         })
     
-    # Clases de noche (después de las 20)
-    clases_nocturnas = []
-    for dia, clases_dia in clases_por_dia.items():
-        for item in clases_dia:
-            hora_fin = int(item['clase']['hora_fin'].split(':')[0])
-            if hora_fin >= 20:
-                clases_nocturnas.append(HORAS_NOMBRE[dia])
-                break
-    
-    if len(clases_nocturnas) >= 2:
-        desventajas.append({
-            'tipo': 'clases_nocturnas',
-            'texto': f'{len(clases_nocturnas)} días hasta tarde (después 20h)',
-            'icono': '🌙',
-            'color': 'yellow'
-        })
-    
     # Distribución equilibrada
     cantidad_por_dia = [len(clases) for clases in clases_por_dia.values()]
     if cantidad_por_dia:
@@ -171,35 +149,9 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
                 'color': 'blue'
             })
     
-    # Ventana para almorzar
-    tiene_ventana_almuerzo = False
-    for dia, clases_dia in clases_por_dia.items():
-        clases_ordenadas = sorted(clases_dia, key=lambda x: x['clase']['hora_inicio'])
-        
-        # Buscar si hay hueco entre 12 y 14
-        for i in range(len(clases_ordenadas) - 1):
-            fin_h = int(clases_ordenadas[i]['clase']['hora_fin'].split(':')[0])
-            inicio_h = int(clases_ordenadas[i + 1]['clase']['hora_inicio'].split(':')[0])
-            
-            # Si termina antes de las 14 y empieza después de las 12
-            if fin_h <= 14 and inicio_h >= 12:
-                tiene_ventana_almuerzo = True
-                break
-        
-        if tiene_ventana_almuerzo:
-            break
-    
-    if tiene_ventana_almuerzo:
-        ventajas.append({
-            'tipo': 'ventana_almuerzo',
-            'texto': 'Tiempo para almorzar',
-            'icono': '🍽️',
-            'color': 'green'
-        })
-    
     score = 50  # default score
     score += len(ventajas) * 10
-    score -= len(desventajas) * 8
+    score -= len(desventajas) * 20
     score = max(0, min(100, score))  # clamp entre 0-100
     
     return {
