@@ -379,6 +379,7 @@ function App() {
             prioridadesGuardadas={prioridadesGuardadas}
             onToggleCurso={handleToggleCurso}
             onGenerarPlanes={handleGenerarPlanes}
+            padron={loggedInUser || undefined}
             sedePreferida={sedePreferida}
             modalidadPreferida={modalidadPreferida}
             maxPlanes={maxPlanes}

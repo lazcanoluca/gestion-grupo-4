@@ -13,6 +13,7 @@ interface Props {
   prioridadesGuardadas: Record<string, number>;
   onToggleCurso: (curso: CursoSeleccionado) => void;
   onGenerarPlanes: (p: Record<string, number>) => void;
+  padron?: string;
 
   sedePreferida: string;
   setSedePreferida: (value: string) => void;
@@ -28,6 +29,7 @@ export default function PantallaSeleccion({
   prioridadesGuardadas,
   onToggleCurso,
   onGenerarPlanes,
+  padron,
 
   sedePreferida,
   setSedePreferida,
@@ -46,6 +48,7 @@ export default function PantallaSeleccion({
         <BuscadorMaterias
           cursosSeleccionadosCodigos={cursosSeleccionadosCodigos}
           onToggleCurso={onToggleCurso}
+          padron={padron}
         />
       </div>
 
