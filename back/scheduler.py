@@ -7,6 +7,25 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def clase_en_horarios_excluidos(clase: Dict, excluidos: List[Dict]) -> bool:
+    for ex in excluidos:
+        if clase['dia'] != ex['dia']:
+            continue
+
+        def to_min(h):
+            h, m = map(int, h.split(':'))
+            return h * 60 + m
+        
+        inicio_c = to_min(clase['hora_inicio'])
+        fin_c = to_min(clase['hora_fin'])
+        inicio_e = to_min(ex['hora_inicio'])
+        fin_e = to_min(ex['hora_fin'])
+
+        if not (fin_c <= inicio_e or fin_e <= inicio_c):
+            return True
+        
+    return False
+
 def curso_cumple_preferencias(curso: Dict, prefs: Dict[str, str]) -> bool:
     """
     Devuelve True si el curso coincide con las preferencias del usuario.
@@ -133,7 +152,7 @@ def agrupar_cursos_por_materia(cursos: List[Dict]) -> Dict[str, List[Dict]]:
         materias[materia_codigo].append(curso)
     return materias
 
-def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_parciales: bool = False) -> List[List[Dict]]:
+def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_parciales: bool = False, horarios_excluidos: List[Dict] = None) -> List[List[Dict]]:
     """
     Genera todas las combinaciones posibles de cursos que cumplan:
     1. No se solapen horariamente
@@ -148,6 +167,10 @@ def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_p
     Returns:
         Lista de planes válidos (cada plan es una lista de cursos)
     """
+
+    if horarios_excluidos is None:
+        horarios_excluidos = []
+
     # 1. Obtener datos completos de todos los cursos
     cursos_datos = []
     for codigo in codigos_cursos:
@@ -161,6 +184,19 @@ def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_p
     # 2. Determinar cuántas materias únicas hay
     materias_unicas = set(curso['materia']['codigo'] for curso in cursos_datos)
     total_materias = len(materias_unicas)
+
+    # Filtrar cursos que tengan clases en horarios excluidos
+    if horarios_excluidos:
+        cursos_filtrados = []
+        for curso in cursos_datos:
+            tiene_prohibido = any(
+                clase_en_horarios_excluidos(clase, horarios_excluidos)
+                for clase in curso['clases']
+            )
+            if not tiene_prohibido:
+                cursos_filtrados.append(curso)
+
+        cursos_datos = cursos_filtrados
     
     # 3. Generar todos los subconjuntos posibles de cursos
     planes_validos = []

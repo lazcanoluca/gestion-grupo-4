@@ -40,6 +40,7 @@ def generar_planes_endpoint():
             'sede': 'ANY',
             'modalidad': 'ANY'
         })
+        horarios_excluidos = data.get('horarios_excluidos', [])
 
         codigos_filtrados = []
         for codigo in codigos_originales:
@@ -54,7 +55,7 @@ def generar_planes_endpoint():
         #     }), 400
 
         # Generar planes
-        planes = generar_planes(codigos_filtrados, max_planes=max_planes, permitir_parciales=permitir_parciales)
+        planes = generar_planes(codigos_filtrados, max_planes=max_planes, permitir_parciales=permitir_parciales, horarios_excluidos=horarios_excluidos)
         
         if len(planes) == 0:
             return jsonify({

@@ -44,6 +44,14 @@ interface CursoSeleccionado {
   cursoNombre: string;
 }
 
+
+// Agregar esta interfaz al inicio del archivo
+interface HorarioBloqueado {
+  dia: number;
+  hora_inicio: string;
+  hora_fin: string;
+}
+
 const mockLogin = async (padron: string): Promise<{ padron: string }> => {
   const response = await fetch("http://localhost:5000/api/login", {
     method: "POST",
@@ -160,8 +168,15 @@ function App() {
   };
 
   const cursosSeleccionadosCodigos = cursosSeleccionados.map((c) => c.codigo);
-
-  const handleGenerarPlanes = async (prioridades: Record<string, number>) => {
+  const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] = useState<
+    HorarioBloqueado[]
+  >([]);
+  // Actualizar handleGenerarPlanes para guardar los horarios:
+  const handleGenerarPlanes = async (
+    prioridades: Record<string, number>,
+    horariosExcluidos: HorarioBloqueado[],
+    preferencias: { sede: string; modalidad: string }
+  ) => {
     setIsGenerandoPlanes(true);
     setError(null);
 
@@ -175,11 +190,12 @@ function App() {
             cursos: cursosSeleccionadosCodigos,
             prioridades: prioridades,
             max_planes: maxPlanes,
+            horarios_excluidos: horariosExcluidos,
             preferencias: {
               sede: sedePreferida,
               modalidad: modalidadPreferida,
             },
-          }),
+            }),
         }
       );
 
@@ -187,9 +203,10 @@ function App() {
 
       if (data.success) {
         setPrioridadesGuardadas(prioridades);
+        setHorariosExcluidosGuardados(horariosExcluidos); // 👈 GUARDAR
 
         if (data.tipo_advertencia === "advertencia_nunca_usados") {
-          alert("<Advertencia>\n" + data.advertencia);
+          alert("❗Advertencia\n" + data.advertencia);
         }
 
         const planesConId = data.planes.map(
@@ -200,8 +217,8 @@ function App() {
           })
         );
 
-        console.log('Planes con análisis:', planesConId);
-        console.log('Data completa del backend:', data);
+        console.log("Planes con análisis:", planesConId);
+        console.log("Data completa del backend:", data);
 
         setPlanesGenerados(planesConId);
         setActiveScreen("calendario");
@@ -231,6 +248,7 @@ function App() {
     setMaxPlanes(500);
     setSedePreferida("ANY");
     setModalidadPreferida("ANY");
+    setHorariosExcluidosGuardados([]);
   };
 
   // Cerrar dropdown al hacer clic fuera
@@ -411,13 +429,13 @@ function App() {
         {loggedInUser && activeScreen === "calendario" && (
           <WeeklyCalendar
             planesGenerados={planesGenerados}
+            horariosExcluidos={horariosExcluidosGuardados}
             onBack={() => setActiveScreen("seleccion")}
             onLimpiarPlanes={() => {
               handleLimpiarPlanes();
               setActiveScreen("seleccion");
             }}
           />
-
         )}
       </main>
 

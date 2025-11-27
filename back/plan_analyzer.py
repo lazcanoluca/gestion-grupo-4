@@ -56,7 +56,7 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
     
     # Clases espaciadas en un mismo día
     # (Asumimos que un hueco grande es >= 2 horas)
-    HORAS_NOMBRE = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+    HORAS_NOMBRE = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
     
     for dia, clases_dia in clases_por_dia.items():
         if len(clases_dia) < 2:
