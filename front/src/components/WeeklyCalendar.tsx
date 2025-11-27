@@ -51,7 +51,7 @@ interface HorarioBloqueado {
 
 interface WeeklyCalendarProps {
   planesGenerados?: Plan[]
-  horariosExcluidos?: HorarioBloqueado[]  // 👈 NUEVO
+  horariosExcluidos?: HorarioBloqueado[]
   onBack?: () => void
   onLimpiarPlanes?: () => void
 }
@@ -155,7 +155,7 @@ function TooltipAnalisis({ analisis }: { analisis: Analisis }) {
 
 export function WeeklyCalendar({
   planesGenerados = [],
-  horariosExcluidos = [],  // 👈 NUEVO
+  horariosExcluidos = [],
   onBack,
   onLimpiarPlanes,
 }: WeeklyCalendarProps) {

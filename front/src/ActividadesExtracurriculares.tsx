@@ -7,6 +7,7 @@ interface HorarioBloqueado {
 }
 
 interface Props {
+  horariosExcluidosIniciales: HorarioBloqueado[]
   onHorariosChange: (horarios: HorarioBloqueado[]) => void;
 }
 
@@ -37,11 +38,22 @@ const HORARIOS_DIA = [
   { inicio: "21:00", fin: "22:00" },
 ];
 
-export function ActividadesExtracurriculares({ onHorariosChange }: Props) {
+export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHorariosChange }: Props) {
   const [diasExpandidos, setDiasExpandidos] = useState<Set<number>>(new Set());
-  const [horariosSeleccionados, setHorariosSeleccionados] = useState<
-    Set<string>
-  >(new Set());
+  // const [horariosSeleccionados, setHorariosSeleccionados] = useState<
+  //   Set<string>
+  // >(new Set());
+  const generarKey = (dia: number, inicio: string, fin: string) => {
+    return `${dia}-${inicio}-${fin}`;
+  };
+
+  const initialHorariosSet = new Set<string>(
+        horariosExcluidosIniciales.map(h => generarKey(h.dia, h.hora_inicio, h.hora_fin))
+    );
+    
+  const [horariosSeleccionados, setHorariosSeleccionados] = useState<Set<string>>(
+      initialHorariosSet
+  );
 
   const toggleDia = (diaId: number) => {
     const newSet = new Set(diasExpandidos);
@@ -51,10 +63,6 @@ export function ActividadesExtracurriculares({ onHorariosChange }: Props) {
       newSet.add(diaId);
     }
     setDiasExpandidos(newSet);
-  };
-
-  const generarKey = (dia: number, inicio: string, fin: string) => {
-    return `${dia}-${inicio}-${fin}`;
   };
 
   const toggleHorario = (dia: number, inicio: string, fin: string) => {

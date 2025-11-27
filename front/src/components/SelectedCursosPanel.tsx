@@ -30,7 +30,6 @@ export function SelectedCursosPanel({
   prioridadesIniciales = {},
   onPrioridadesChange
 }: SelectedCursosPanelProps) {
-  // 🔥 Inicializar con prioridades previas si existen
   const [prioridades, setPrioridades] = useState<Record<string, number>>(prioridadesIniciales)
   const [mostrarAyuda, setMostrarAyuda] = useState(false)
   const [mostrarPanel, setMostrarPanel] = useState(false)
@@ -105,7 +104,6 @@ export function SelectedCursosPanel({
         </p>
       ) : (
         <>
-          {/* 🔥 PANEL COLAPSABLE CON LISTA DE CURSOS */}
           <div className="mb-3">
             <button
               onClick={() => setMostrarPanel(!mostrarPanel)}
@@ -124,7 +122,7 @@ export function SelectedCursosPanel({
               </svg>
             </button>
 
-            {/* 🔥 CONTENIDO COLAPSABLE */}
+            {/* CONTENIDO COLAPSABLE */}
             {mostrarPanel && (
               <div className="mt-2 space-y-3">
                 {/* Distribución de prioridades */}
@@ -219,7 +217,7 @@ export function SelectedCursosPanel({
             )}
           </div>
 
-          {/* 🔥 RESUMEN COMPACTO CUANDO ESTÁ COLAPSADO */}
+          {/* RESUMEN COMPACTO CUANDO ESTÁ COLAPSADO */}
           {!mostrarPanel && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3">
               <div className="flex items-center justify-between text-xs">
@@ -279,7 +277,7 @@ export default function Demo() {
 
   const handleGenerarPlanes = (prioridades: Record<string, number>) => {
     console.log('Generando planes con prioridades:', prioridades)
-    setPrioridadesGuardadas(prioridades) // 🔥 Guardar prioridades
+    setPrioridadesGuardadas(prioridades)
     alert(`Generando planes con prioridades:\n${JSON.stringify(prioridades, null, 2)}`)
   }
 

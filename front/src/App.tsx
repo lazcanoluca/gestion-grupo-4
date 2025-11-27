@@ -66,17 +66,6 @@ const mockLogin = async (padron: string): Promise<{ padron: string }> => {
 };
 
 function App() {
-  // 👇 PERSISTIR DARK MODE
-  const [darkMode, setDarkMode] = usePersistentState("scheduler.darkMode", false);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
-
   const [activeScreen, setActiveScreen] = useState<
     "home" | "seleccion" | "calendario"
   >("home");
@@ -119,7 +108,6 @@ function App() {
     500
   );
   
-  // 👇 NUEVO: permitir_parciales
   const [permitirParciales, setPermitirParciales] = useUserScopedPersistentState<boolean>(
     loggedInUser,
     "permitirParciales",
@@ -167,9 +155,15 @@ function App() {
   };
 
   const cursosSeleccionadosCodigos = cursosSeleccionados.map((c) => c.codigo);
-  const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] = useState<
-    HorarioBloqueado[]
-  >([]);
+  // const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] = useState<
+  //   HorarioBloqueado[]
+  // >([]);
+  const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] =
+    useUserScopedPersistentState<HorarioBloqueado[]>(
+      loggedInUser,
+      "horariosExcluidosGuardados",
+      []
+    );
 
   const handleGenerarPlanes = async (
     prioridades: Record<string, number>,
@@ -190,7 +184,7 @@ function App() {
             prioridades: prioridades,
             max_planes: maxPlanes,
             horarios_excluidos: horariosExcluidos,
-            permitir_parciales: permitirParciales, // 👈 NUEVO
+            permitir_parciales: permitirParciales,
             preferencias: {
               sede: sedePreferida,
               modalidad: modalidadPreferida,
@@ -306,23 +300,6 @@ function App() {
 
           {loggedInUser && (
             <div className="flex items-center gap-4">
-              {/* Botón modo oscuro */}
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                aria-label="Cambiar modo oscuro"
-                className="w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-              >
-                {darkMode ? (
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                  </svg>
-                )}
-              </button>
-
               {/* Avatar del usuario */}
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -414,6 +391,8 @@ function App() {
             setModalidadPreferida={setModalidadPreferida}
             setMaxPlanes={setMaxPlanes}
             setPermitirParciales={setPermitirParciales}
+            horariosExcluidosGuardados={horariosExcluidosGuardados}
+            setHorariosExcluidosGuardados={setHorariosExcluidosGuardados}
           />
         )}
 

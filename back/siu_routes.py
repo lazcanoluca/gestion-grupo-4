@@ -82,7 +82,6 @@ def parse_siu():
                     'error': 'No se pudieron extraer materias del texto proporcionado'
                 }), 400
             
-            # 🔥 GUARDAR EN LA BASE DE DATOS NORMALIZADA
             conn = get_db()
             cursor = conn.cursor()
             saved_count = 0

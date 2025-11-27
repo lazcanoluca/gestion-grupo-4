@@ -19,10 +19,12 @@ interface Props {
   cursosSeleccionados: CursoSeleccionado[];
   cursosSeleccionadosCodigos: string[];
   prioridadesGuardadas: Record<string, number>;
+  horariosExcluidosGuardados: HorarioBloqueado[];
+  setHorariosExcluidosGuardados: (value: HorarioBloqueado[]) => void;
   onToggleCurso: (curso: CursoSeleccionado) => void;
   onGenerarPlanes: (
     prioridades: Record<string, number>,
-    horariosExcluidos: HorarioBloqueado[],
+    horariosExcluidosGuardados: HorarioBloqueado[],
     preferencias: { sede: string; modalidad: string }
   ) => void;
   padron?: string;
@@ -41,6 +43,8 @@ export default function PantallaSeleccion({
   cursosSeleccionados,
   cursosSeleccionadosCodigos,
   prioridadesGuardadas,
+  horariosExcluidosGuardados,
+  setHorariosExcluidosGuardados,
   onToggleCurso,
   onGenerarPlanes,
   padron,
@@ -54,9 +58,9 @@ export default function PantallaSeleccion({
   setMaxPlanes,
   setPermitirParciales,
 }: Props) {
-  const [horariosExcluidos, setHorariosExcluidos] = useState<
-    HorarioBloqueado[]
-  >([]);
+  // const [horariosExcluidos, setHorariosExcluidos] = useState<
+  //   HorarioBloqueado[]
+  // >([]);
 
   return (
     <div className="w-full h-full grid grid-cols-3 gap-4 p-6 bg-gray-50 dark:bg-gray-900">
@@ -82,7 +86,7 @@ export default function PantallaSeleccion({
         <SelectedCursosPanel
           cursos={cursosSeleccionados}
           onGenerarPlanes={(prioridades) =>
-            onGenerarPlanes(prioridades, horariosExcluidos, {
+            onGenerarPlanes(prioridades, horariosExcluidosGuardados, {
               sede: sedePreferida,
               modalidad: modalidadPreferida,
             })
@@ -190,7 +194,8 @@ export default function PantallaSeleccion({
               📅 Actividades extracurriculares
             </h3>
             <ActividadesExtracurriculares
-              onHorariosChange={setHorariosExcluidos}
+              horariosExcluidosIniciales={horariosExcluidosGuardados}
+              onHorariosChange={setHorariosExcluidosGuardados}
             />
           </div>
         </div>
