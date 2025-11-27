@@ -308,6 +308,8 @@ def get_cursos_de_materia(codigo):
                 'numero_curso': curso['numero_curso'],
                 'catedra': curso['catedra'],
                 'periodo': curso['periodo'],
+                'modalidad': curso['modalidad'],
+                'sede': curso['sede'],
                 'docentes': docentes,
                 'clases': clases
             })
@@ -397,6 +399,8 @@ def get_cursos():
                 'numero_curso': curso['numero_curso'],
                 'catedra': curso['catedra'],
                 'periodo': curso['periodo'],
+                'modalidad': curso['modalidad'],
+                'sede': curso['sede'],
                 'materia': {
                     'codigo': curso['materia_codigo'],
                     'nombre': curso['materia_nombre']
@@ -475,6 +479,9 @@ def get_curso(codigo):
                 'numero_curso': curso['numero_curso'],
                 'catedra': curso['catedra'],
                 'periodo': curso['periodo'],
+                'modalidad': curso['modalidad'],
+                'sede': curso['sede'],
+                'votos_modalidad': curso['votos_modalidad'],
                 'materia': {
                     'codigo': curso['materia_codigo'],
                     'nombre': curso['materia_nombre']

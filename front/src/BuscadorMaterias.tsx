@@ -20,6 +20,8 @@ interface Curso {
   numero_curso: string
   catedra?: string
   periodo: string
+  modalidad?: string
+  sede?: string
   docentes: string[]
   clases: Clase[]
 }
@@ -176,6 +178,19 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
                     </div>
                   ))}
                 </div>
+
+                {(curso.modalidad || curso.sede) && (
+                  <div className="mt-2 space-y-1 text-xs text-gray-500">
+                    <div className="flex justify-between">
+                      <span>Modalidad</span>
+                      <span>{curso.modalidad || 'sin_confirmar'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sede</span>
+                      <span>{curso.sede || '-'}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -239,4 +254,3 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
     </div>
   )
 }
-
