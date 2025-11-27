@@ -43,6 +43,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
   const [busqueda, setBusqueda] = useState('')
   const [cursoFeedback, setCursoFeedback] = useState<Curso | null>(null)
   const [modalidadSeleccionada, setModalidadSeleccionada] = useState<string>('virtual')
+  const [sedeSeleccionada, setSedeSeleccionada] = useState<string>('')
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
   const [feedbackLoading, setFeedbackLoading] = useState(false)
 
@@ -122,8 +123,10 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
     const modalidadInicial = permitidas.includes(curso.modalidad || '')
       ? (curso.modalidad as string)
       : 'virtual'
+    const sedeInicial = (curso.sede === 'PC' || curso.sede === 'LH') ? curso.sede : ''
     setCursoFeedback(curso)
     setModalidadSeleccionada(modalidadInicial)
+    setSedeSeleccionada(sedeInicial)
     setFeedbackError(null)
   }
 
@@ -131,6 +134,10 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
     if (!cursoFeedback) return
     if (!padron) {
       alert('Debes iniciar sesi\u00f3n para enviar feedback')
+      return
+    }
+    if (modalidadSeleccionada !== 'virtual' && !(sedeSeleccionada === 'PC' || sedeSeleccionada === 'LH')) {
+      setFeedbackError('Selecciona una sede')
       return
     }
 
@@ -144,7 +151,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
         body: JSON.stringify({
           curso_codigo: cursoFeedback.codigo,
           modalidad: modalidadSeleccionada,
-          sede: cursoFeedback.sede || null,
+          sede: modalidadSeleccionada === 'virtual' ? null : sedeSeleccionada || null,
           padron
         })
       })
@@ -181,6 +188,21 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
           <option value="presencial">Presencial</option>
           <option value="hibrido">Híbrido</option>
         </select>
+
+        {modalidadSeleccionada !== 'virtual' && (
+          <>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sede</label>
+            <select
+              value={sedeSeleccionada}
+              onChange={(e) => setSedeSeleccionada(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Selecciona sede</option>
+              <option value="PC">Paseo Colón (PC)</option>
+              <option value="LH">Las Heras (LH)</option>
+            </select>
+          </>
+        )}
 
         {feedbackError && (
           <p className="text-sm text-red-600 mb-3">{feedbackError}</p>
@@ -292,7 +314,17 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                     </div>
                     <div className="flex justify-between">
                       <span>Sede</span>
-                      <span>{curso.sede || '-'}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          abrirFeedback(curso)
+                        }}
+                        title="Click para informar modalidad"
+                        className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                      >
+                        {curso.sede || '-'}
+                      </button>
                     </div>
                   </div>
                 )}
