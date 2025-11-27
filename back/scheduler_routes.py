@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from scheduler import generar_planes, generar_estadisticas, obtener_datos_curso
+from scheduler import generar_planes, generar_estadisticas, obtener_datos_curso, curso_cumple_preferencias
 from plan_analyzer import analizar_plan
 
 scheduler_bp = Blueprint('scheduler', __name__)
@@ -12,19 +12,15 @@ def generar_planes_endpoint():
     {
         "cursos": ["CB100-1", "CB100-2", "61.03-1", "75.01-1"],
         "prioridades": {
-            "CB100-1": 5,
+            "CB100-1": 5,   // 5 es la prioridad más alta
             "CB100-2": 3
-        },
-        "horarios_excluidos": [
-            {"dia": 0, "hora_inicio": "14:00", "hora_fin": "16:00"},
-            {"dia": 2, "hora_inicio": "10:00", "hora_fin": "12:00"}
-        ],
+        }
+        "permitir_parciales": false  // Opcional, por defecto False
+        "max_planes"
         "preferencias": {
-            "sede": "ANY",       // ANY | PC | LH
-            "modalidad": "ANY"   // ANY | Presencial | Virtual
-        },
-        "permitir_parciales": false,
-        "max_planes": 1000
+            "sede": "ANY", // ANY | PC | LH
+            "modalidad": "ANY", // ANY | Presencial | Virtual
+        }
     }
     """
     try:
@@ -36,46 +32,35 @@ def generar_planes_endpoint():
                 'error': 'Se requiere un campo "cursos" con la lista de códigos'
             }), 400
         
-        codigos = data['cursos']
+        codigos_originales = data['cursos']
         prioridades = data.get('prioridades', {})
-        horarios_excluidos = data.get('horarios_excluidos', [])
+        max_planes = data.get('max_planes', 1000)
+        permitir_parciales = data.get('permitir_parciales', False)
         preferencias = data.get('preferencias', {
             'sede': 'ANY',
             'modalidad': 'ANY'
         })
-        max_planes = data.get('max_planes', 1000)
-        permitir_parciales = data.get('permitir_parciales', False)
-        
-        if not isinstance(codigos, list) or len(codigos) == 0:
-            return jsonify({
-                'success': False,
-                'error': 'El campo "cursos" debe ser una lista no vacía'
-            }), 400
-        
-        # Validar formato de horarios_excluidos
-        if not isinstance(horarios_excluidos, list):
-            return jsonify({
-                'success': False,
-                'error': 'El campo "horarios_excluidos" debe ser una lista'
-            }), 400
-        
-        # Generar planes (ahora incluye horarios_excluidos y preferencias)
-        planes = generar_planes(
-            codigos, 
-            max_planes=max_planes, 
-            permitir_parciales=permitir_parciales,
-            horarios_excluidos=horarios_excluidos,
-            preferencias=preferencias
-        )
+        horarios_excluidos = data.get('horarios_excluidos', [])
+
+        codigos_filtrados = []
+        for codigo in codigos_originales:
+            info = obtener_datos_curso(codigo)
+            if info and curso_cumple_preferencias(info, preferencias):
+                codigos_filtrados.append(codigo)
+
+        # if not isinstance(codigos_filtrados, list) or len(codigos_filtrados) == 0:
+        #     return jsonify({
+        #         'success': False,
+        #         'error': 'El campo "cursos" debe ser una lista no vacía'
+        #     }), 400
+
+        # Generar planes
+        planes = generar_planes(codigos_filtrados, max_planes=max_planes, permitir_parciales=permitir_parciales, horarios_excluidos=horarios_excluidos)
         
         if len(planes) == 0:
-            mensaje_error = 'No se pudieron generar planes sin solapamientos'
-            if horarios_excluidos:
-                mensaje_error += f'. Tienes {len(horarios_excluidos)} horarios bloqueados que pueden estar limitando las opciones.'
-            
             return jsonify({
                 'success': False,
-                'error': mensaje_error,
+                'error': 'No se pudieron generar planes sin solapamientos',
                 'planes': [],
                 'total': 0
             }), 200
@@ -84,7 +69,7 @@ def generar_planes_endpoint():
         planes_con_prioridad = []
         for plan in planes:
             prioridad_total = sum(
-                prioridades.get(curso['codigo'], 3) for curso in plan
+                prioridades.get(curso['codigo'], 3) for curso in plan  # Default: 3
             )
 
             analisis = analizar_plan(plan)
@@ -95,7 +80,7 @@ def generar_planes_endpoint():
                 'analisis': analisis
             })
         
-        # Ordenar por prioridad descendente
+        # Ordenar por prioridad descendente (5 = máxima prioridad)
         planes_con_prioridad.sort(key=lambda p: p['prioridad_total'], reverse=True)
         
         # Extraer cursos manteniendo compatibilidad
@@ -103,12 +88,8 @@ def generar_planes_endpoint():
         prioridades_totales = [p['prioridad_total'] for p in planes_con_prioridad]
         analisis_planes = [p['analisis'] for p in planes_con_prioridad]
 
-        stats = generar_estadisticas(
-            planes_ordenados, 
-            codigos,
-            horarios_excluidos
-        )
-        stats['prioridades_totales'] = prioridades_totales[:10]
+        stats = generar_estadisticas(planes_ordenados, codigos_filtrados)
+        stats['prioridades_totales'] = prioridades_totales[:10]  # Primeros 10
         
         respuesta = {
             'success': True,

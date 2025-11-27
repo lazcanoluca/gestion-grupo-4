@@ -113,9 +113,17 @@ def parse_siu():
                             # 3. Insertar curso
                             cursor.execute('''
                                 INSERT OR REPLACE INTO cursos 
-                                (codigo, materia_codigo, numero_curso, catedra, periodo)
-                                VALUES (?, ?, ?, ?, ?)
-                            ''', (curso_codigo, materia['codigo'], numero_curso, catedra, periodo))
+                                (codigo, materia_codigo, numero_curso, catedra, periodo, sede, modalidad, votos_modalidad)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            ''', (curso_codigo, 
+                                materia['codigo'], 
+                                numero_curso, 
+                                catedra, 
+                                periodo,
+                                curso.get('sede', 'Sede desconocida'),
+                                'sin_confirmar',
+                                0
+                            ))
                             
                             # Limpiar docentes y clases anteriores
                             cursor.execute('DELETE FROM curso_docentes WHERE curso_codigo = ?', (curso_codigo,))
@@ -139,7 +147,7 @@ def parse_siu():
                                     VALUES (?, ?)
                                 ''', (curso_codigo, nombre_docente))
                             
-                            # 5. Guardar clases (SIN tipo ni aula)
+                            # 5. Guardar clases
                             for clase in curso['clases']:
                                 cursor.execute('''
                                     INSERT INTO clases 
@@ -229,7 +237,6 @@ def get_materias():
 @siu_bp.route('/materias/<codigo>/cursos', methods=['GET'])
 def get_cursos_de_materia(codigo):
     """
-    🔥 CORREGIDO: Obtener todos los cursos de una materia específica
     Ejemplo: GET /api/siu/materias/61.03/cursos
     """
     try:
@@ -251,7 +258,7 @@ def get_cursos_de_materia(codigo):
         
         # Query base para cursos
         query = '''
-            SELECT codigo, numero_curso, catedra, periodo
+            SELECT codigo, numero_curso, catedra, periodo, sede, modalidad, votos_modalidad
             FROM cursos
             WHERE materia_codigo = ?
         '''
@@ -286,7 +293,7 @@ def get_cursos_de_materia(codigo):
             ''', (codigo_curso,))
             docentes = [row['nombre'] for row in cursor.fetchall()]
             
-            # Obtener clases (SIN tipo ni aula) ✅
+            # Obtener clases
             cursor.execute('''
                 SELECT dia, hora_inicio, hora_fin
                 FROM clases
@@ -343,7 +350,7 @@ def get_cursos():
         # Query base
         query = '''
             SELECT 
-                c.codigo, c.numero_curso, c.catedra, c.periodo,
+                c.codigo, c.numero_curso, c.catedra, c.periodo, c.sede, c.modalidad, c.votos_modalidad,
                 m.codigo as materia_codigo, m.nombre as materia_nombre
             FROM cursos c
             JOIN materias m ON c.materia_codigo = m.codigo
@@ -376,7 +383,7 @@ def get_cursos():
             ''', (codigo_curso,))
             docentes = [row['nombre'] for row in cursor.fetchall()]
             
-            # Obtener clases (SIN tipo ni aula) ✅
+            # Obtener clases
             cursor.execute('''
                 SELECT dia, hora_inicio, hora_fin
                 FROM clases
@@ -427,7 +434,7 @@ def get_curso(codigo):
         # Obtener curso y materia
         cursor.execute('''
             SELECT 
-                c.codigo, c.numero_curso, c.catedra, c.periodo,
+                c.codigo, c.numero_curso, c.catedra, c.periodo, c.sede, c.modalidad, c.votos_modalidad,
                 m.codigo as materia_codigo, m.nombre as materia_nombre
             FROM cursos c
             JOIN materias m ON c.materia_codigo = m.codigo
@@ -450,13 +457,13 @@ def get_curso(codigo):
         ''', (codigo,))
         docentes = [row['nombre'] for row in cursor.fetchall()]
         
-        # Obtener clases (SIN tipo ni aula) ✅
+        # Obtener clases
         cursor.execute('''
-            SELECT dia, hora_inicio, hora_fin
-            FROM clases
-            WHERE curso_codigo = ?
-            ORDER BY dia, hora_inicio
-        ''', (codigo,))
+                SELECT dia, hora_inicio, hora_fin
+                FROM clases
+                WHERE curso_codigo = ?
+                ORDER BY dia, hora_inicio
+            ''', (codigo,))
         clases = [dict(row) for row in cursor.fetchall()]
         
         conn.close()
