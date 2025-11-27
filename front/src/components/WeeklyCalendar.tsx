@@ -215,7 +215,7 @@ export function WeeklyCalendar({
     const duracionMinutos =
       horaFin * 60 + minutoFin - (horaInicio * 60 + minutoInicio)
 
-    const alturaBase = window.innerHeight / 16
+    const alturaBase = (window.innerHeight - 200) / 16
     const alturaPx = (duracionMinutos / 60) * alturaBase
     const offsetTop = (minutoInicio / 60) * alturaBase
 
@@ -549,7 +549,7 @@ export function WeeklyCalendar({
                       {/* 👇 LUEGO RENDERIZAR CLASES */}
                       {planActual.cursos.map((curso) =>
                         curso.clases
-                          .filter((clase) => clase.dia - 1 === diaIndex)
+                          .filter((clase) => clase.dia === diaIndex)
                           .map((clase) =>
                             renderClaseEnCalendario(curso, clase, hora)
                           )
