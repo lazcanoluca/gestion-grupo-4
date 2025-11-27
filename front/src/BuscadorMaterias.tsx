@@ -20,6 +20,8 @@ interface Curso {
   numero_curso: string
   catedra?: string
   periodo: string
+  modalidad?: string
+  sede?: string
   docentes: string[]
   clases: Clase[]
 }
@@ -27,17 +29,35 @@ interface Curso {
 interface Props {
   cursosSeleccionadosCodigos: string[]
   onToggleCurso: (curso: { codigo: string; materiaNombre: string; cursoNombre: string }) => void
+  padron?: string
 }
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+const formatModalidad = (modalidad?: string) => {
+  if (!modalidad || modalidad === 'sin_confirmar') return 'Desconocido'
+  if (modalidad === 'virtual') return 'Virtual'
+  if (modalidad === 'presencial') return 'Presencial'
+  if (modalidad === 'hibrido') return 'Híbrido'
+  return modalidad
+}
+const formatSede = (sede?: string) => {
+  if (sede === 'PC') return 'Paseo Colón (PC)'
+  if (sede === 'LH') return 'Las Heras (LH)'
+  return 'Desconocido'
+}
 
-export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: Props) {
+export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, padron }: Props) {
   const [materias, setMaterias] = useState<Materia[]>([])
   const [cursos, setCursos] = useState<Curso[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [materiaSeleccionada, setMateriaSeleccionada] = useState<string | null>(null)
   const [busqueda, setBusqueda] = useState('')
+  const [cursoFeedback, setCursoFeedback] = useState<Curso | null>(null)
+  const [modalidadSeleccionada, setModalidadSeleccionada] = useState<string>('virtual')
+  const [sedeSeleccionada, setSedeSeleccionada] = useState<string>('')
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
 
   useEffect(() => {
     cargarMaterias()
@@ -110,6 +130,112 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
     })
   }
 
+  const abrirFeedback = (curso: Curso) => {
+    const permitidas = ['virtual', 'presencial', 'hibrido']
+    const modalidadInicial = permitidas.includes(curso.modalidad || '')
+      ? (curso.modalidad as string)
+      : 'virtual'
+    const sedeInicial = (curso.sede === 'PC' || curso.sede === 'LH') ? curso.sede : ''
+    setCursoFeedback(curso)
+    setModalidadSeleccionada(modalidadInicial)
+    setSedeSeleccionada(sedeInicial)
+    setFeedbackError(null)
+  }
+
+  const enviarFeedback = async () => {
+    if (!cursoFeedback) return
+    if (!padron) {
+      alert('Debes iniciar sesi\u00f3n para enviar feedback')
+      return
+    }
+    setFeedbackLoading(true)
+    setFeedbackError(null)
+
+    try {
+      const resp = await fetch('http://localhost:5000/api/feedback/enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          curso_codigo: cursoFeedback.codigo,
+          modalidad: modalidadSeleccionada,
+          sede: modalidadSeleccionada === 'virtual' ? null : (sedeSeleccionada || null),
+          padron
+        })
+      })
+
+      const data = await resp.json()
+      if (!resp.ok || !data.success) {
+        throw new Error(data.error || 'No se pudo enviar el feedback')
+      }
+
+      alert('Gracias por tu feedback!')
+      setCursoFeedback(null)
+    } catch (err) {
+      setFeedbackError(err instanceof Error ? err.message : 'Error al enviar feedback')
+    } finally {
+      setFeedbackLoading(false)
+    }
+  }
+
+  const modalFeedback = cursoFeedback && (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{cursoFeedback.nombre}</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Contribuí seleccionando la modalidad de cursada y así mejorar la información para todos.
+        </p>
+
+        <label className="block text-sm font-medium text-gray-700 mb-1">Modalidad</label>
+        <select
+          value={modalidadSeleccionada}
+          onChange={(e) => setModalidadSeleccionada(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="virtual">Virtual</option>
+          <option value="presencial">Presencial</option>
+          <option value="hibrido">Híbrido</option>
+        </select>
+
+        {modalidadSeleccionada !== 'virtual' && (
+          <>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sede</label>
+            <select
+              value={sedeSeleccionada}
+              onChange={(e) => setSedeSeleccionada(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Selecciona sede</option>
+              <option value="PC">Paseo Colón (PC)</option>
+              <option value="LH">Las Heras (LH)</option>
+            </select>
+          </>
+        )}
+
+        {feedbackError && (
+          <p className="text-sm text-red-600 mb-3">{feedbackError}</p>
+        )}
+
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setCursoFeedback(null)}
+            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={enviarFeedback}
+            disabled={feedbackLoading}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-60"
+          >
+            {feedbackLoading ? 'Enviando...' : 'Enviar feedback'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
   if (materiaSeleccionada && cursos.length > 0) {
     const materia = materias.find(m => m.codigo === materiaSeleccionada)
 
@@ -176,10 +302,44 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
                     </div>
                   ))}
                 </div>
+
+                {(curso.modalidad || curso.sede) && (
+                  <div className="mt-2 space-y-1 text-xs text-gray-500">
+                    <div className="flex justify-between">
+                      <span>Modalidad</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          abrirFeedback(curso)
+                        }}
+                        title="Click para informar modalidad"
+                        className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                      >
+                        {formatModalidad(curso.modalidad)}
+                      </button>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 font-medium">Sede</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          abrirFeedback(curso)
+                        }}
+                        title="Click para informar modalidad"
+                        className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                      >
+                        {formatSede(curso.sede)}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
+        {modalFeedback}
       </div>
     )
   }
@@ -236,7 +396,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso }: 
           </div>
         </>
       )}
+      {modalFeedback}
     </div>
   )
 }
-
