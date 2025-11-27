@@ -136,11 +136,6 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
       alert('Debes iniciar sesi\u00f3n para enviar feedback')
       return
     }
-    if (modalidadSeleccionada !== 'virtual' && !(sedeSeleccionada === 'PC' || sedeSeleccionada === 'LH')) {
-      setFeedbackError('Selecciona una sede')
-      return
-    }
-
     setFeedbackLoading(true)
     setFeedbackError(null)
 
