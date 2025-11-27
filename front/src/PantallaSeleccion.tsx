@@ -14,6 +14,7 @@ interface Props {
   onToggleCurso: (curso: CursoSeleccionado) => void;
   onGenerarPlanes: (p: Record<string, number>) => void;
   padron?: string;
+  onPrioridadesChange: (p: Record<string, number>) => void;
 
   sedePreferida: string;
   setSedePreferida: (value: string) => void;
@@ -30,6 +31,7 @@ export default function PantallaSeleccion({
   onToggleCurso,
   onGenerarPlanes,
   padron,
+  onPrioridadesChange,
 
   sedePreferida,
   setSedePreferida,
@@ -65,6 +67,7 @@ export default function PantallaSeleccion({
             )
           }
           prioridadesIniciales={prioridadesGuardadas}
+          onPrioridadesChange={onPrioridadesChange}
         />
       </div>
 
@@ -80,10 +83,9 @@ export default function PantallaSeleccion({
               Sede
             </label>
             <select
-              value={sedePreferida} 
-              onChange={(e) => setSedePreferida(e.target.value)}
               id="sede-select"
-              defaultValue=""
+              value={sedePreferida}
+              onChange={(e) => setSedePreferida(e.target.value)}
               className="w-full border rounded px-2 py-1 mt-1"
             >
               <option value="ANY">Cualquiera</option>
@@ -98,10 +100,9 @@ export default function PantallaSeleccion({
               Modalidad
             </label>
             <select
-              value={modalidadPreferida} 
-              onChange={(e) => setModalidadPreferida(e.target.value)}
               id="modalidad-select"
-              defaultValue=""
+              value={modalidadPreferida}
+              onChange={(e) => setModalidadPreferida(e.target.value)}
               className="w-full border rounded px-2 py-1 mt-1"
             >
               <option value="ANY">Cualquiera</option>

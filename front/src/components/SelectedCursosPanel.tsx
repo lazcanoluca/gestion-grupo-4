@@ -12,6 +12,7 @@ interface SelectedCursosPanelProps {
   onGenerarPlanes: (prioridades: Record<string, number>) => void
   onRemove: (codigo: string) => void
   prioridadesIniciales?: Record<string, number>
+  onPrioridadesChange?: (prioridades: Record<string, number>) => void
 }
 
 const PRIORIDAD_LABELS = {
@@ -22,11 +23,12 @@ const PRIORIDAD_LABELS = {
   1: { label: 'Muy Baja', emoji: '⭐', color: 'text-gray-600' }
 }
 
-export function SelectedCursosPanel({ 
-  cursos, 
-  onGenerarPlanes, 
+export function SelectedCursosPanel({
+  cursos,
+  onGenerarPlanes,
   onRemove,
-  prioridadesIniciales = {}
+  prioridadesIniciales = {},
+  onPrioridadesChange
 }: SelectedCursosPanelProps) {
   // 🔥 Inicializar con prioridades previas si existen
   const [prioridades, setPrioridades] = useState<Record<string, number>>(prioridadesIniciales)
@@ -38,10 +40,14 @@ export function SelectedCursosPanel({
   const getPrioridad = (codigo: string) => prioridades[codigo] || 3
 
   const actualizarPrioridad = (codigo: string, nuevaPrioridad: number) => {
-    setPrioridades(prev => ({
-      ...prev,
-      [codigo]: nuevaPrioridad
-    }))
+    setPrioridades(prev => {
+      const next = {
+        ...prev,
+        [codigo]: nuevaPrioridad
+      }
+      onPrioridadesChange?.(next)
+      return next
+    })
   }
 
   const handleGenerarPlanes = () => {
@@ -108,10 +114,10 @@ export function SelectedCursosPanel({
               <span className="text-sm font-semibold text-gray-700">
                 {mostrarPanel ? 'Ocultar' : 'Ver'} cursos y prioridades
               </span>
-              <svg 
+              <svg
                 className={`w-5 h-5 text-gray-600 transition-transform ${mostrarPanel ? 'rotate-180' : ''}`}
-                fill="none" 
-                stroke="currentColor" 
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -145,6 +151,7 @@ export function SelectedCursosPanel({
                       const nuevasPrioridades: Record<string, number> = {}
                       cursos.forEach(c => nuevasPrioridades[c.codigo] = 3)
                       setPrioridades(nuevasPrioridades)
+                      onPrioridadesChange?.(nuevasPrioridades)
                     }}
                     className="flex-1 text-xs py-1.5 px-2 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors font-medium"
                   >
@@ -184,16 +191,15 @@ export function SelectedCursosPanel({
                           <div className="flex gap-1 flex-wrap">
                             {[5, 4, 3, 2, 1].map(nivel => {
                               const isSelected = prioridad === nivel
-                              
+
                               return (
                                 <button
                                   key={nivel}
                                   onClick={() => actualizarPrioridad(curso.codigo, nivel)}
-                                  className={`px-2 py-0.5 text-xs rounded transition-all ${
-                                    isSelected
-                                      ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                  }`}
+                                  className={`px-2 py-0.5 text-xs rounded transition-all ${isSelected
+                                    ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
                                 >
                                   {nivel}⭐
                                 </button>
@@ -221,7 +227,7 @@ export function SelectedCursosPanel({
                   {cursos.length} {cursos.length === 1 ? 'curso' : 'cursos'} con prioridades configuradas
                 </span>
                 <div className="flex gap-1">
-                  {Object.entries(conteoPrioridades).reverse().map(([nivel, cant]) => 
+                  {Object.entries(conteoPrioridades).reverse().map(([nivel, cant]) =>
                     cant > 0 && (
                       <span key={nivel} className="bg-blue-200 text-blue-900 px-1.5 py-0.5 rounded text-[10px] font-semibold">
                         {cant}×{nivel}⭐
@@ -238,11 +244,10 @@ export function SelectedCursosPanel({
       <button
         onClick={handleGenerarPlanes}
         disabled={!hayCursos}
-        className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all ${
-          hayCursos
-            ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
-            : 'bg-gray-300 cursor-not-allowed'
-        }`}
+        className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all ${hayCursos
+          ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
+          : 'bg-gray-300 cursor-not-allowed'
+          }`}
       >
         {hayCursos ? `Generar Planes (${cursos.length} cursos)` : 'Generar Planes'}
       </button>
