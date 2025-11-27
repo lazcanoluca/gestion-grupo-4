@@ -19,7 +19,7 @@ def generar_planes_endpoint():
         "max_planes"
         "preferencias": {
             "sede": "ANY", // ANY | PC | LH
-            "modalidad": "ANY", // ANY | Presencial | Virtual
+            "modalidad": "ANY", // ANY | presencial | virtual
         }
     }
     """
@@ -32,7 +32,7 @@ def generar_planes_endpoint():
                 'error': 'Se requiere un campo "cursos" con la lista de códigos'
             }), 400
         
-        codigos_originales = data['cursos']
+        codigos = data['cursos']
         prioridades = data.get('prioridades', {})
         max_planes = data.get('max_planes', 1000)
         permitir_parciales = data.get('permitir_parciales', False)
@@ -42,11 +42,11 @@ def generar_planes_endpoint():
         })
         horarios_excluidos = data.get('horarios_excluidos', [])
 
-        codigos_filtrados = []
-        for codigo in codigos_originales:
-            info = obtener_datos_curso(codigo)
-            if info and curso_cumple_preferencias(info, preferencias):
-                codigos_filtrados.append(codigo)
+        # codigos_filtrados = []
+        # for codigo in codigos_originales:
+        #     info = obtener_datos_curso(codigo)
+        #     if info and curso_cumple_preferencias(info, preferencias):
+        #         codigos_filtrados.append(codigo)
 
         # if not isinstance(codigos_filtrados, list) or len(codigos_filtrados) == 0:
         #     return jsonify({
@@ -55,7 +55,7 @@ def generar_planes_endpoint():
         #     }), 400
 
         # Generar planes
-        planes = generar_planes(codigos_filtrados, max_planes=max_planes, permitir_parciales=permitir_parciales, horarios_excluidos=horarios_excluidos)
+        planes = generar_planes(codigos, max_planes=max_planes, permitir_parciales=permitir_parciales, horarios_excluidos=horarios_excluidos, preferencias=preferencias)
         
         if len(planes) == 0:
             return jsonify({
@@ -88,7 +88,7 @@ def generar_planes_endpoint():
         prioridades_totales = [p['prioridad_total'] for p in planes_con_prioridad]
         analisis_planes = [p['analisis'] for p in planes_con_prioridad]
 
-        stats = generar_estadisticas(planes_ordenados, codigos_filtrados)
+        stats = generar_estadisticas(planes_ordenados, codigos)
         stats['prioridades_totales'] = prioridades_totales[:10]  # Primeros 10
         
         respuesta = {

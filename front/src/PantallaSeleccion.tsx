@@ -143,8 +143,8 @@ export default function PantallaSeleccion({
               className="w-full border dark:border-gray-600 rounded px-2 py-1 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             >
               <option value="ANY">Cualquiera</option>
-              <option value="Presencial">Presencial</option>
-              <option value="Virtual">Virtual</option>
+              <option value="presencial">Presencial</option>
+              <option value="virtual">Virtual</option>
             </select>
           </div>
 

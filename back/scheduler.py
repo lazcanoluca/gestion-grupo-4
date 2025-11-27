@@ -44,7 +44,7 @@ def curso_cumple_preferencias(curso: Dict, prefs: Dict[str, str]) -> bool:
 
     # Modalidad sin_confirmar → se acepta siempre
     modalidad_curso = curso['modalidad']
-    if modalidad_curso not in ("Presencial", "Virtual"):
+    if modalidad_curso not in ("presencial", "virtual"):
         mod_ok = True
     else:
         mod_ok = (mod_pref == "ANY" or modalidad_curso == mod_pref)
@@ -152,7 +152,7 @@ def agrupar_cursos_por_materia(cursos: List[Dict]) -> Dict[str, List[Dict]]:
         materias[materia_codigo].append(curso)
     return materias
 
-def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_parciales: bool = False, horarios_excluidos: List[Dict] = None) -> List[List[Dict]]:
+def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_parciales: bool = False, horarios_excluidos: List[Dict] = None, preferencias: Dict[str, str] = None) -> List[List[Dict]]:
     """
     Genera todas las combinaciones posibles de cursos que cumplan:
     1. No se solapen horariamente
@@ -171,6 +171,9 @@ def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_p
     if horarios_excluidos is None:
         horarios_excluidos = []
 
+    if preferencias is None:
+        preferencias = {"sede": "ANY", "modalidad": "ANY"}
+
     # 1. Obtener datos completos de todos los cursos
     cursos_datos = []
     for codigo in codigos_cursos:
@@ -184,6 +187,14 @@ def generar_planes(codigos_cursos: List[str], max_planes: int = 1000, permitir_p
     # 2. Determinar cuántas materias únicas hay
     materias_unicas = set(curso['materia']['codigo'] for curso in cursos_datos)
     total_materias = len(materias_unicas)
+
+    # Filtrar por sede y modalidad
+    cursos_filtrados_pref = []
+    for curso in cursos_datos:
+        if curso_cumple_preferencias(curso, preferencias):
+            cursos_filtrados_pref.append(curso)
+
+    cursos_datos = cursos_filtrados_pref
 
     # Filtrar cursos que tengan clases en horarios excluidos
     if horarios_excluidos:
