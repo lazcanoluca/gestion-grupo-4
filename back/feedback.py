@@ -32,9 +32,13 @@ def enviar_feedback(curso_codigo: str, modalidad: str, sede: Optional[str], padr
             return {'success': False, 'error': 'sede inválido'}
         
         # Guardar feedback
+        # Si el usuario ya voto por primera vez, se inserta
+        # Si el usuario voto antes, se actualiza su voto (no se suma un voto nuevo)
         cursor.execute('''
             INSERT INTO feedback_modalidad (curso_codigo, modalidad, sede, usuario_padron)
             VALUES (?, ?, ?, ?)
+            ON CONFLICT(curso_codigo, usuario_padron)
+            DO UPDATE SET modalidad=excluded.modalidad, sede=excluded.sede
         ''', (curso_codigo, modalidad, sede, padron))
         
         conn.commit()
