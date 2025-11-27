@@ -46,6 +46,15 @@ const formatSede = (sede?: string) => {
   return 'Desconocido'
 }
 
+const removerAcentos = (texto: string): string => {
+    if(!texto) return "";
+
+    return texto
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  }
+
 export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, padron }: Props) {
   const [materias, setMaterias] = useState<Materia[]>([])
   const [cursos, setCursos] = useState<Curso[]>([])
@@ -113,10 +122,13 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
       setIsLoading(false)
     }
   }
+  
+  // tambien pasa a lowercase
+  const busquedaNormalizada = removerAcentos(busqueda);
 
   const materiasFiltradas = materias.filter(m =>
-    m.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    m.codigo.toLowerCase().includes(busqueda.toLowerCase())
+    removerAcentos(m.nombre).includes(busquedaNormalizada) ||
+    removerAcentos(m.codigo).includes(busquedaNormalizada)
   )
 
   const formatearHora = (hora: string) => hora.substring(0, 5)
