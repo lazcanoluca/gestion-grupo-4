@@ -33,6 +33,18 @@ interface Props {
 }
 
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+const formatModalidad = (modalidad?: string) => {
+  if (!modalidad || modalidad === 'sin_confirmar') return 'Desconocido'
+  if (modalidad === 'virtual') return 'Virtual'
+  if (modalidad === 'presencial') return 'Presencial'
+  if (modalidad === 'hibrido') return 'Híbrido'
+  return modalidad
+}
+const formatSede = (sede?: string) => {
+  if (sede === 'PC') return 'Paseo Colón (PC)'
+  if (sede === 'LH') return 'Las Heras (LH)'
+  return 'Desconocido'
+}
 
 export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, padron }: Props) {
   const [materias, setMaterias] = useState<Materia[]>([])
@@ -146,7 +158,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
         body: JSON.stringify({
           curso_codigo: cursoFeedback.codigo,
           modalidad: modalidadSeleccionada,
-          sede: modalidadSeleccionada === 'virtual' ? null : sedeSeleccionada || null,
+          sede: modalidadSeleccionada === 'virtual' ? null : (sedeSeleccionada || null),
           padron
         })
       })
@@ -304,11 +316,11 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                         title="Click para informar modalidad"
                         className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
                       >
-                        {curso.modalidad || 'sin_confirmar'}
+                        {formatModalidad(curso.modalidad)}
                       </button>
                     </div>
                     <div className="flex justify-between">
-                      <span>Sede</span>
+                      <span className="text-gray-700 font-medium">Sede</span>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -318,7 +330,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                         title="Click para informar modalidad"
                         className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
                       >
-                        {curso.sede || '-'}
+                        {formatSede(curso.sede)}
                       </button>
                     </div>
                   </div>
@@ -366,11 +378,11 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                 No se encontraron materias.
               </div>
             )}
-          {materiasFiltradas.map((materia) => (
-            <div
-              key={materia.codigo}
-              onClick={() => cargarCursosPorMateria(materia.codigo)}
-              className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm cursor-pointer transition-all"
+            {materiasFiltradas.map((materia) => (
+              <div
+                key={materia.codigo}
+                onClick={() => cargarCursosPorMateria(materia.codigo)}
+                className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm cursor-pointer transition-all"
               >
                 <h3 className="font-semibold text-gray-800 mb-1">
                   {materia.nombre}
