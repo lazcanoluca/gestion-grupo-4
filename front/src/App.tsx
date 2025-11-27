@@ -44,8 +44,6 @@ interface CursoSeleccionado {
   cursoNombre: string;
 }
 
-
-// Agregar esta interfaz al inicio del archivo
 interface HorarioBloqueado {
   dia: number;
   hora_inicio: string;
@@ -67,21 +65,15 @@ const mockLogin = async (padron: string): Promise<{ padron: string }> => {
   return response.json();
 };
 
-
-
 function App() {
-
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("theme") === "dark";
-  });
+  // 👇 PERSISTIR DARK MODE
+  const [darkMode, setDarkMode] = usePersistentState("scheduler.darkMode", false);
 
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
 
@@ -110,7 +102,6 @@ function App() {
   const [planesGenerados, setPlanesGenerados] = useState<Plan[]>([]);
   const [isGenerandoPlanes, setIsGenerandoPlanes] = useState(false);
 
-  // Prioridades guardadas entre recargas
   const [prioridadesGuardadas, setPrioridadesGuardadas] =
     useUserScopedPersistentState<Record<string, number>>(
       loggedInUser,
@@ -126,7 +117,15 @@ function App() {
     loggedInUser,
     "maxPlanes",
     500
-  ); // valor por defecto
+  );
+  
+  // 👇 NUEVO: permitir_parciales
+  const [permitirParciales, setPermitirParciales] = useUserScopedPersistentState<boolean>(
+    loggedInUser,
+    "permitirParciales",
+    false
+  );
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -171,7 +170,7 @@ function App() {
   const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] = useState<
     HorarioBloqueado[]
   >([]);
-  // Actualizar handleGenerarPlanes para guardar los horarios:
+
   const handleGenerarPlanes = async (
     prioridades: Record<string, number>,
     horariosExcluidos: HorarioBloqueado[],
@@ -191,11 +190,12 @@ function App() {
             prioridades: prioridades,
             max_planes: maxPlanes,
             horarios_excluidos: horariosExcluidos,
+            permitir_parciales: permitirParciales, // 👈 NUEVO
             preferencias: {
               sede: sedePreferida,
               modalidad: modalidadPreferida,
             },
-            }),
+          }),
         }
       );
 
@@ -203,7 +203,7 @@ function App() {
 
       if (data.success) {
         setPrioridadesGuardadas(prioridades);
-        setHorariosExcluidosGuardados(horariosExcluidos); // 👈 GUARDAR
+        setHorariosExcluidosGuardados(horariosExcluidos);
 
         if (data.tipo_advertencia === "advertencia_nunca_usados") {
           alert("❗Advertencia\n" + data.advertencia);
@@ -249,9 +249,9 @@ function App() {
     setSedePreferida("ANY");
     setModalidadPreferida("ANY");
     setHorariosExcluidosGuardados([]);
+    setPermitirParciales(false);
   };
 
-  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -282,7 +282,6 @@ function App() {
         border-b 
         border-gray-200 dark:border-gray-700
       ">
-
         <div className="px-4 sm:px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -300,29 +299,26 @@ function App() {
                 />
               </svg>
             </div>
-            <h1 className="hidden md:block text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="hidden md:block text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
               Scheduler de Materias
             </h1>
           </div>
 
           {loggedInUser && (
-
             <div className="flex items-center gap-4">
-              {/* Botón para abrir menú lateral */}
+              {/* Botón modo oscuro */}
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 aria-label="Cambiar modo oscuro"
                 className="w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
               >
                 {darkMode ? (
-                  // ícono sol
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 3.22l.61 1.25a1 1 0 00.76.55l1.38.2-1 .98a1 1 0 00-.29.88l.24 1.37-1.24-.65a1 1 0 00-.93 0l-1.24.65.24-1.37a1 1 0 00-.29-.88l-1-.98 1.38-.2a1 1 0 00.76-.55L10 3.22z" />
+                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
                   </svg>
                 ) : (
-                  // ícono luna
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707 8.001 8.001 0 1017.293 13.293z" />
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                   </svg>
                 )}
               </button>
@@ -344,10 +340,10 @@ function App() {
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2 cursor-pointer"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 cursor-pointer"
                     >
                       <svg
                         className="w-4 h-4"
@@ -376,8 +372,6 @@ function App() {
       <main className="h-[calc(100vh-73px)]">
         {loggedInUser && activeScreen === "home" && (
           <div className="h-full flex flex-col items-center justify-center gap-6 px-4">
-
-            {/* NUEVA DESCRIPCIÓN */}
             <div className="
               bg-white dark:bg-gray-800 
               rounded-lg 
@@ -394,18 +388,14 @@ function App() {
               <p>📅 4. Visualiza tus horarios aquí</p>
             </div>
 
-
-            {/* BOTÓN YA EXISTENTE */}
             <button
               onClick={() => setActiveScreen("seleccion")}
               className="px-8 py-4 text-xl font-bold bg-blue-600 text-white rounded-lg shadow-lg hover:scale-105 transition"
             >
               Armar Cronograma
             </button>
-
           </div>
         )}
-
 
         {loggedInUser && activeScreen === "seleccion" && (
           <PantallaSeleccion
@@ -419,10 +409,11 @@ function App() {
             sedePreferida={sedePreferida}
             modalidadPreferida={modalidadPreferida}
             maxPlanes={maxPlanes}
-
+            permitirParciales={permitirParciales}
             setSedePreferida={setSedePreferida}
             setModalidadPreferida={setModalidadPreferida}
             setMaxPlanes={setMaxPlanes}
+            setPermitirParciales={setPermitirParciales}
           />
         )}
 
@@ -450,7 +441,6 @@ function App() {
             w-full 
             max-w-md
           ">
-
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-1">
                 <label htmlFor="padron" className="text-gray-700 dark:text-gray-200 font-medium">
@@ -463,13 +453,13 @@ function App() {
                   value={padron}
                   onChange={(e) => setPadron(e.target.value)}
                   placeholder="Padrón"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
                   disabled={isLoading}
                 />
               </div>
 
-              {error && <p className="text-red-600">{error}</p>}
+              {error && <p className="text-red-600 dark:text-red-400">{error}</p>}
               <button
                 type="submit"
                 disabled={isLoading}

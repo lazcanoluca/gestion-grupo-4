@@ -30,9 +30,11 @@ interface Props {
   sedePreferida: string;
   modalidadPreferida: string;
   maxPlanes: number;
+  permitirParciales: boolean;
   setSedePreferida: (value: string) => void;
   setModalidadPreferida: (value: string) => void;
   setMaxPlanes: (value: number) => void;
+  setPermitirParciales: (value: boolean) => void;
 }
 
 export default function PantallaSeleccion({
@@ -46,9 +48,11 @@ export default function PantallaSeleccion({
   sedePreferida,
   modalidadPreferida,
   maxPlanes,
+  permitirParciales,
   setSedePreferida,
   setModalidadPreferida,
   setMaxPlanes,
+  setPermitirParciales,
 }: Props) {
   const [horariosExcluidos, setHorariosExcluidos] = useState<
     HorarioBloqueado[]
@@ -112,7 +116,7 @@ export default function PantallaSeleccion({
               id="sede-select"
               value={sedePreferida}
               onChange={(e) => setSedePreferida(e.target.value)}
-              className="w-full border rounded px-2 py-1 mt-1"
+              className="w-full border dark:border-gray-600 rounded px-2 py-1 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             >
               <option value="ANY">Cualquiera</option>
               <option value="PC">Paseo Colón</option>
@@ -132,7 +136,7 @@ export default function PantallaSeleccion({
               id="modalidad-select"
               value={modalidadPreferida}
               onChange={(e) => setModalidadPreferida(e.target.value)}
-              className="w-full border rounded px-2 py-1 mt-1"
+              className="w-full border dark:border-gray-600 rounded px-2 py-1 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             >
               <option value="ANY">Cualquiera</option>
               <option value="Presencial">Presencial</option>
@@ -158,6 +162,26 @@ export default function PantallaSeleccion({
               onChange={(e) => setMaxPlanes(Number(e.target.value))}
               className="w-40 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             />
+          </div>
+
+          {/* CHECKBOX PARA PERMITIR PLANES PARCIALES */}
+          <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <input
+              id="permitir-parciales-checkbox"
+              type="checkbox"
+              checked={permitirParciales}
+              onChange={(e) => setPermitirParciales(e.target.checked)}
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            />
+            <label
+              htmlFor="permitir-parciales-checkbox"
+              className="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer flex-1"
+            >
+              Permitir planes parciales
+              <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Incluye planes que no contengan todas las materias seleccionadas
+              </span>
+            </label>
           </div>
 
           {/* SEPARADOR */}
