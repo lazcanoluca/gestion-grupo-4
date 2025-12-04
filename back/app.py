@@ -324,4 +324,5 @@ if __name__ == '__main__':
     print('📍 Cursos de materia: GET http://localhost:5000/api/siu/materias/<codigo>/cursos')
     print('='*50 + '\n')
     
-    app.run(debug=True, port=5000)
+    # Bind to all interfaces so Docker networking works
+    app.run(host='0.0.0.0', debug=True, port=5000)
