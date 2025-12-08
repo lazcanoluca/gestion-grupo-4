@@ -500,7 +500,7 @@ export function WeeklyCalendar({
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
-              Bienvenido al Scheduler de Materias
+              Bienvenido a FIUBA Scheduler
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Selecciona materias desde el menú y genera planes

@@ -1,4 +1,4 @@
-# Backend - Scheduler de Materias
+# Backend - FIUBA Scheduler
 
 ## Instalación
 

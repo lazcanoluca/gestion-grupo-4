@@ -1,4 +1,4 @@
-Scheduler de Materias
+FIUBA Scheduler
 
 El scheduler de materias es una propuesta orientada a facilitar la organización académica de los estudiantes. Su objetivo principal es brindarle a los estudiantes una herramienta que planifique automáticamente las cátedras que pueden cursar durante un cuatrimestre, teniendo en cuenta que los horarios de cursada de éstas no se superpongan, y las preferencias del usuario.
 
