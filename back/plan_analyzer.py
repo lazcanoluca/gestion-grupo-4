@@ -112,9 +112,11 @@ def analizar_plan(cursos: List[Dict[str, Any]]) -> Dict[str, Any]:
                 'color': 'red'
             })
     
-    # Días muy cargados
+    # días muy cargados
+    # algunas materias se cargan divididas en 2 (teorica y practica)
+    # asi que 4 materias en un dia puede llegar a significar 2 materias con teorica y práctica.
     for dia, clases_dia in clases_por_dia.items():
-        if len(clases_dia) >= 4:
+        if len(clases_dia) > 4:
             total_materias = len(set(item['curso']['materia']['codigo'] for item in clases_dia))
             desventajas.append({
                 'tipo': 'dia_cargado',

@@ -102,7 +102,21 @@ export function parseSIU(rawdata) {
         
         // Limpiar ceros a la izquierda: "02" -> "2"
         numeroCurso = numeroCurso.replace(/^0+/, '') || '0';
-        
+
+        // Si la catedra no tiene nombre (como muchas de am2) se pone el apellido del docente de cátedra
+        if (!nombreCatedra && docentes) {
+          // Suele ser el primero
+          const primerDocente = docentes.split(/[,(]/)[0].trim();
+          if (primerDocente) {
+            const primeraPalabra = primerDocente.split(/\s+/)[0];
+            if (primeraPalabra && primeraPalabra.length > 1) {
+              // Pasar a title case (ej: Schmidt)
+              nombreCatedra = primeraPalabra.charAt(0).toUpperCase() + 
+                              primeraPalabra.slice(1).toLowerCase();
+            }
+          }
+        }
+
         const cursoCodigo = `${materiaCodigo}-${numeroCurso}`;
         console.error(`    Found curso: ${cursoCodigo}`);
         console.error(`      Numero: ${numeroCurso}`);
