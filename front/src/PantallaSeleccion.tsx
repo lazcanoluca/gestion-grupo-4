@@ -161,7 +161,7 @@ export default function PantallaSeleccion({
               id="max-planes-input"
               type="number"
               min={1}
-              max={5000}
+              max={50}
               value={maxPlanes}
               onChange={(e) => setMaxPlanes(Number(e.target.value))}
               className="w-40 px-3 py-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"

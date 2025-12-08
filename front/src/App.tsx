@@ -1,3 +1,7 @@
+// ============================================
+// App.tsx - Componente Principal
+// ============================================
+
 import { useState, useRef, useEffect } from "react";
 import "./App.css";
 import { WeeklyCalendar } from "./components/WeeklyCalendar";
@@ -31,11 +35,11 @@ interface Plan {
   id: number;
   cursos: Curso[];
   analisis?: {
-    ventajas: Array<{ tipo: string, texto: string, icono: string, color: string }>;
-    desventajas: Array<{ tipo: string, texto: string, icono: string, color: string }>;
+    ventajas: Array<{ tipo: string; texto: string; icono: string; color: string }>;
+    desventajas: Array<{ tipo: string; texto: string; icono: string; color: string }>;
     score: number;
     total_flags: number;
-  }
+  };
 }
 
 interface CursoSeleccionado {
@@ -66,52 +70,37 @@ const mockLogin = async (padron: string): Promise<{ padron: string }> => {
 };
 
 function App() {
-  const [activeScreen, setActiveScreen] = useState<
-    "home" | "seleccion" | "calendario"
-  >("home");
-
+  const [activeScreen, setActiveScreen] = useState<"home" | "seleccion" | "calendario">("home");
   const [padron, setPadron] = useState("");
-  const [loggedInUser, setLoggedInUser] = usePersistentState<string | null>(
-    "scheduler.loggedInUser",
-    null
-  );
+  const [loggedInUser, setLoggedInUser] = usePersistentState<string | null>("scheduler.loggedInUser", null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
-  const [activePanel, setActivePanel] = useState<"import" | "buscador" | null>(
-    null
+  const [activePanel, setActivePanel] = useState<"import" | "buscador" | null>(null);
+  
+  const [cursosSeleccionados, setCursosSeleccionados] = useUserScopedPersistentState<CursoSeleccionado[]>(
+    loggedInUser,
+    "cursosSeleccionados",
+    []
   );
-  const [cursosSeleccionados, setCursosSeleccionados] =
-    useUserScopedPersistentState<CursoSeleccionado[]>(
-      loggedInUser,
-      "cursosSeleccionados",
-      []
-    );
   const [planesGenerados, setPlanesGenerados] = useState<Plan[]>([]);
   const [isGenerandoPlanes, setIsGenerandoPlanes] = useState(false);
 
-  const [prioridadesGuardadas, setPrioridadesGuardadas] =
-    useUserScopedPersistentState<Record<string, number>>(
-      loggedInUser,
-      "prioridadesGuardadas",
-      {}
-    );
-
-  const [sedePreferida, setSedePreferida] =
-    useUserScopedPersistentState<string>(loggedInUser, "sedePreferida", "ANY");
-  const [modalidadPreferida, setModalidadPreferida] =
-    useUserScopedPersistentState<string>(loggedInUser, "modalidadPreferida", "ANY");
-  const [maxPlanes, setMaxPlanes] = useUserScopedPersistentState<number>(
+  const [prioridadesGuardadas, setPrioridadesGuardadas] = useUserScopedPersistentState<Record<string, number>>(
     loggedInUser,
-    "maxPlanes",
-    500
+    "prioridadesGuardadas",
+    {}
   );
-  
-  const [permitirParciales, setPermitirParciales] = useUserScopedPersistentState<boolean>(
+
+  const [sedePreferida, setSedePreferida] = useUserScopedPersistentState<string>(loggedInUser, "sedePreferida", "ANY");
+  const [modalidadPreferida, setModalidadPreferida] = useUserScopedPersistentState<string>(loggedInUser, "modalidadPreferida", "ANY");
+  const [maxPlanes, setMaxPlanes] = useUserScopedPersistentState<number>(loggedInUser, "maxPlanes", 500);
+  const [permitirParciales, setPermitirParciales] = useUserScopedPersistentState<boolean>(loggedInUser, "permitirParciales", false);
+  const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] = useUserScopedPersistentState<HorarioBloqueado[]>(
     loggedInUser,
-    "permitirParciales",
-    false
+    "horariosExcluidosGuardados",
+    []
   );
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -128,9 +117,7 @@ function App() {
       setLoggedInUser(response.padron);
       setPadron("");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al iniciar sesión"
-      );
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
     } finally {
       setIsLoading(false);
     }
@@ -155,15 +142,6 @@ function App() {
   };
 
   const cursosSeleccionadosCodigos = cursosSeleccionados.map((c) => c.codigo);
-  // const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] = useState<
-  //   HorarioBloqueado[]
-  // >([]);
-  const [horariosExcluidosGuardados, setHorariosExcluidosGuardados] =
-    useUserScopedPersistentState<HorarioBloqueado[]>(
-      loggedInUser,
-      "horariosExcluidosGuardados",
-      []
-    );
 
   const handleGenerarPlanes = async (
     prioridades: Record<string, number>,
@@ -174,24 +152,21 @@ function App() {
     setError(null);
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/scheduler/generar-planes",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            cursos: cursosSeleccionadosCodigos,
-            prioridades: prioridades,
-            max_planes: maxPlanes,
-            horarios_excluidos: horariosExcluidos,
-            permitir_parciales: permitirParciales,
-            preferencias: {
-              sede: sedePreferida,
-              modalidad: modalidadPreferida,
-            },
-          }),
-        }
-      );
+      const response = await fetch("http://localhost:5000/api/scheduler/generar-planes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cursos: cursosSeleccionadosCodigos,
+          prioridades: prioridades,
+          max_planes: maxPlanes,
+          horarios_excluidos: horariosExcluidos,
+          permitir_parciales: permitirParciales,
+          preferencias: {
+            sede: sedePreferida,
+            modalidad: modalidadPreferida,
+          },
+        }),
+      });
 
       const data = await response.json();
 
@@ -203,13 +178,11 @@ function App() {
           alert("❗Advertencia\n" + data.advertencia);
         }
 
-        const planesConId = data.planes.map(
-          (cursos: Curso[], index: number) => ({
-            id: index,
-            cursos,
-            analisis: data.analisis ? data.analisis[index] : undefined,
-          })
-        );
+        const planesConId = data.planes.map((cursos: Curso[], index: number) => ({
+          id: index,
+          cursos,
+          analisis: data.analisis ? data.analisis[index] : undefined,
+        }));
 
         console.log("Planes con análisis:", planesConId);
         console.log("Data completa del backend:", data);
@@ -226,8 +199,7 @@ function App() {
         );
       }
     } catch (err) {
-      const mensajeError =
-        err instanceof Error ? err.message : "Error al generar planes";
+      const mensajeError = err instanceof Error ? err.message : "Error al generar planes";
       setError(mensajeError);
       alert(`❌ ${mensajeError}`);
     } finally {
@@ -248,49 +220,24 @@ function App() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="
-      min-h-screen 
-      bg-gradient-to-br 
-      from-blue-50 via-white to-indigo-50 
-      dark:from-gray-900 dark:via-gray-950 dark:to-black
-      relative overflow-hidden
-    ">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-950 dark:to-black relative overflow-hidden">
       {/* HEADER */}
-      <header className="
-        bg-white/80 dark:bg-gray-900/80 
-        backdrop-blur-sm 
-        shadow-md 
-        border-b 
-        border-gray-200 dark:border-gray-700
-      ">
+      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-[100001]">
         <div className="px-4 sm:px-6 py-4 flex justify-between items-center">
+          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <h1 className="hidden md:block text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
@@ -298,42 +245,60 @@ function App() {
             </h1>
           </div>
 
+          {/* Botones de acción y Avatar */}
           {loggedInUser && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* Botones - Solo visibles en pantalla de calendario */}
+              {activeScreen === "calendario" && (
+                <>
+                  <button
+                    onClick={() => setActiveScreen("seleccion")}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-sm font-medium transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span className="hidden md:inline">Modificar Selección</span>
+                    <span className="md:hidden">Modificar</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleLimpiarPlanes();
+                      setActiveScreen("seleccion");
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm font-medium transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span className="hidden md:inline">Limpiar Planes</span>
+                    <span className="md:hidden">Limpiar</span>
+                  </button>
+                </>
+              )}
+
               {/* Avatar del usuario */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   aria-label="Menú de usuario"
-                  className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 cursor-pointer"
+                  className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md hover:shadow-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-[100000]">
+                    {/* ^^^^^^^^^^ Cambia de z-50 a z-[100000] */}
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 cursor-pointer"
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
                       Cerrar sesión
                     </button>
@@ -349,16 +314,7 @@ function App() {
       <main className="h-[calc(100vh-73px)]">
         {loggedInUser && activeScreen === "home" && (
           <div className="h-full flex flex-col items-center justify-center gap-6 px-4">
-            <div className="
-              bg-white dark:bg-gray-800 
-              rounded-lg 
-              p-5 
-              text-left 
-              text-base 
-              font-medium 
-              text-gray-700 dark:text-gray-200 
-              shadow
-            ">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-5 text-left text-base font-medium text-gray-700 dark:text-gray-200 shadow">
               <p>📚 1. Abre el menú y busca materias</p>
               <p>✅ 2. Selecciona los cursos que te interesan</p>
               <p>🎯 3. Genera planes sin solapamientos</p>
@@ -400,11 +356,6 @@ function App() {
           <WeeklyCalendar
             planesGenerados={planesGenerados}
             horariosExcluidos={horariosExcluidosGuardados}
-            onBack={() => setActiveScreen("seleccion")}
-            onLimpiarPlanes={() => {
-              handleLimpiarPlanes();
-              setActiveScreen("seleccion");
-            }}
           />
         )}
       </main>
@@ -412,14 +363,7 @@ function App() {
       {/* LOGIN MODAL */}
       {!loggedInUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="
-            bg-white dark:bg-gray-800 
-            rounded-2xl 
-            shadow-2xl 
-            p-8 
-            w-full 
-            max-w-md
-          ">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-md">
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-1">
                 <label htmlFor="padron" className="text-gray-700 dark:text-gray-200 font-medium">
