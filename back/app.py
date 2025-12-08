@@ -91,20 +91,8 @@ def init_db():
             FOREIGN KEY (curso_codigo) REFERENCES cursos(codigo) ON DELETE CASCADE
         )
     ''')
-    
-    # 6. INSCRIPCIONES - Qué cursos eligió cada usuario
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS inscripciones (
-            padron TEXT NOT NULL,
-            curso_codigo TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (padron, curso_codigo),
-            FOREIGN KEY (padron) REFERENCES users(padron) ON DELETE CASCADE,
-            FOREIGN KEY (curso_codigo) REFERENCES cursos(codigo) ON DELETE CASCADE
-        )
-    ''')
 
-    # 7. FEEDBACK DE MODALIDADES - Votos de usuarios
+    # 6. FEEDBACK DE MODALIDADES - Votos de usuarios
     # Importante el unique para que un usuario no pueda votar más de una vez por el mismo curso.
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS feedback_modalidad (
@@ -124,7 +112,6 @@ def init_db():
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_cursos_periodo ON cursos(periodo)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_cursos_modalidad ON cursos(modalidad)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_clases_curso ON clases(curso_codigo)')
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_inscripciones_padron ON inscripciones(padron)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_feedback_curso ON feedback_modalidad(curso_codigo)')
     
     conn.commit()

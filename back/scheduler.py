@@ -42,7 +42,7 @@ def curso_cumple_preferencias(curso: Dict, prefs: Dict[str, str]) -> bool:
     else:
         sede_ok = (sede_pref == "ANY" or sede_curso == sede_pref)
 
-    # Modalidad sin_confirmar → se acepta siempre
+    # Modalidad sin_confirmar o hibrida → se acepta siempre
     modalidad_curso = curso['modalidad']
     if modalidad_curso not in ("presencial", "virtual"):
         mod_ok = True
