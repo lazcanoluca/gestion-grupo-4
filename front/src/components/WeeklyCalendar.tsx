@@ -245,7 +245,7 @@ export function WeeklyCalendar({
 
     const color = coloresPorMateria[curso.materia.codigo] || COLORES_MATERIAS[0]
     const claseId = `${curso.codigo}-${clase.dia}-${clase.hora_inicio}`
-    
+
     // Determinar si es una clase corta (menos de 60 minutos)
     const esClaseCorta = duracionMinutos < 60
     const esMuyCorta = duracionMinutos < 45
@@ -351,9 +351,9 @@ export function WeeklyCalendar({
 
   const claseHovered = cursoHovered && claseHoveredTooltip
     ? cursoHovered.clases.find(cl => {
-        const claseId = `${cursoHovered.codigo}-${cl.dia}-${cl.hora_inicio}`
-        return claseId === claseHoveredTooltip
-      })
+      const claseId = `${cursoHovered.codigo}-${cl.dia}-${cl.hora_inicio}`
+      return claseId === claseHoveredTooltip
+    })
     : null
 
   return (
@@ -399,11 +399,10 @@ export function WeeklyCalendar({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setPlanSeleccionado(index)}
-                      className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-all ${
-                        planSeleccionado === index
-                          ? 'bg-blue-500 text-white shadow-md'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
+                      className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-all ${planSeleccionado === index
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
                     >
                       Plan {index + 1}
                       <span className="ml-2 text-xs opacity-75">
@@ -423,11 +422,10 @@ export function WeeklyCalendar({
                         }
                       }}
                       data-info-btn
-                      className={`p-1.5 rounded-full transition-all ${
-                        planSeleccionado === index
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                      } ${tooltipAbierto === index ? 'ring-2 ring-blue-400' : ''}`}
+                      className={`p-1.5 rounded-full transition-all ${planSeleccionado === index
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        } ${tooltipAbierto === index ? 'ring-2 ring-blue-400' : ''}`}
                       title="Ver análisis del plan"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -548,13 +546,18 @@ export function WeeklyCalendar({
       {planActual && (
         <div className="flex-1 overflow-auto">
           <div className="inline-block min-w-full">
-            <div className="grid grid-cols-[80px_repeat(6,1fr)] border-l border-t border-gray-200 dark:border-gray-700">
+            <div
+              className="grid grid-cols-[80px_repeat(6,1fr)] border-l border-t border-gray-200 dark:border-gray-700"
+              style={{
+                gridAutoRows: 'minmax(60px, calc((100vh - 250px) / 16))',
+              }}
+            >
               <div className="sticky top-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-b border-r border-gray-200 dark:border-gray-700 p-2"></div>
 
               {DIAS.map((dia) => (
                 <div
                   key={dia}
-                  className="sticky top-0 z-20 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-b border-r border-gray-200 dark:border-gray-700 p-3 text-center font-semibold"
+                  className="sticky top-0 z-20 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-b border-r border-gray-200 dark:border-gray-700 p-3 text-center font-semibold flex items-center justify-center"
                 >
                   {dia}
                 </div>
@@ -570,9 +573,6 @@ export function WeeklyCalendar({
                     <div
                       key={`${hora}-${diaIndex}`}
                       className="relative border-b border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
-                      style={{
-                        height: 'calc((100vh - 250px) / 16)',
-                      }}
                     >
                       {horariosExcluidos
                         .filter((horario) => horario.dia === diaIndex)
