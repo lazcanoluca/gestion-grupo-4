@@ -47,13 +47,13 @@ const formatSede = (sede?: string) => {
 }
 
 const removerAcentos = (texto: string): string => {
-    if(!texto) return "";
+  if (!texto) return "";
 
-    return texto
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-  }
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
 
 export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, padron }: Props) {
   const [materias, setMaterias] = useState<Materia[]>([])
@@ -122,7 +122,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
       setIsLoading(false)
     }
   }
-  
+
   // tambien pasa a lowercase
   const busquedaNormalizada = removerAcentos(busqueda);
 
@@ -191,17 +191,17 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
 
   const modalFeedback = cursoFeedback && (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{cursoFeedback.nombre}</h3>
-        <p className="text-sm text-gray-600 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{cursoFeedback.nombre}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Contribuí seleccionando la modalidad de cursada y así mejorar la información para todos.
         </p>
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">Modalidad</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Modalidad</label>
         <select
           value={modalidadSeleccionada}
           onChange={(e) => setModalidadSeleccionada(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         >
           <option value="virtual">Virtual</option>
           <option value="presencial">Presencial</option>
@@ -210,11 +210,11 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
 
         {modalidadSeleccionada !== 'virtual' && (
           <>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sede</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Sede</label>
             <select
               value={sedeSeleccionada}
               onChange={(e) => setSedeSeleccionada(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="">Selecciona sede</option>
               <option value="PC">Paseo Colón (PC)</option>
@@ -224,14 +224,14 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
         )}
 
         {feedbackError && (
-          <p className="text-sm text-red-600 mb-3">{feedbackError}</p>
+          <p className="text-sm text-red-600 dark:text-red-400 mb-3">{feedbackError}</p>
         )}
 
         <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={() => setCursoFeedback(null)}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             Cancelar
           </button>
@@ -259,7 +259,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
               setMateriaSeleccionada(null)
               setCursos([])
             }}
-            className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+            className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -268,10 +268,10 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
           </button>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
           {materia?.nombre}
         </h2>
-        <p className="text-sm text-gray-600 mb-4">Código: {materia?.codigo}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Código: {materia?.codigo}</p>
 
         <div className="flex-1 overflow-y-auto space-y-3 pr-1">
           {cursos.map((curso) => {
@@ -282,32 +282,32 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                 key={curso.codigo}
                 onClick={() => manejarToggleCurso(materia, curso)}
                 className={`border rounded-lg p-4 cursor-pointer transition-all ${isSeleccionado
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-800">{curso.nombre}</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-gray-100">{curso.nombre}</h3>
                   {isSeleccionado && (
-                    <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
 
                 {curso.docentes.length > 0 && (
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                     {curso.docentes.join(', ')}
                   </p>
                 )}
 
                 <div className="space-y-1">
                   {curso.clases.map((clase, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-gray-500">
+                    <div key={idx} className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-300">
                       <span className="font-medium w-8">{DIAS_SEMANA[clase.dia]}</span>
                       <span>{formatearHora(clase.hora_inicio)} - {formatearHora(clase.hora_fin)}</span>
                       {clase.tipo && (
-                        <span className="bg-gray-100 px-2 py-0.5 rounded">
+                        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">
                           {clase.tipo}
                         </span>
                       )}
@@ -316,7 +316,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                 </div>
 
                 {(curso.modalidad || curso.sede) && (
-                  <div className="mt-2 space-y-1 text-xs text-gray-500">
+                  <div className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-300">
                     <div className="flex justify-between">
                       <span>Modalidad</span>
                       <button
@@ -326,13 +326,13 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                           abrirFeedback(curso)
                         }}
                         title="Click para informar modalidad"
-                        className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                        className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                       >
                         {formatModalidad(curso.modalidad)}
                       </button>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-700 font-medium">Sede</span>
+                      <span className="text-gray-700 dark:text-gray-200 font-medium">Sede</span>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -340,7 +340,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
                           abrirFeedback(curso)
                         }}
                         title="Click para informar modalidad"
-                        className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                        className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                       >
                         {formatSede(curso.sede)}
                       </button>
@@ -358,7 +358,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+      <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
         Buscar Materias
       </h2>
 
@@ -369,7 +369,7 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 mb-4">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-800 dark:text-red-200 mb-4">
           {error}
         </div>
       )}
@@ -381,12 +381,12 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
             placeholder="Buscar por nombre o código..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset focus:border-blue-500 mb-4"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset focus:border-blue-500 mb-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           />
 
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
             {!isLoading && materiasFiltradas.length === 0 && (
-              <div className="text-center text-gray-500 py-8 border border-dashed border-gray-300 rounded-lg">
+              <div className="text-center text-gray-500 dark:text-gray-300 py-8 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
                 No se encontraron materias.
               </div>
             )}
@@ -394,12 +394,12 @@ export function BuscadorMaterias({ cursosSeleccionadosCodigos, onToggleCurso, pa
               <div
                 key={materia.codigo}
                 onClick={() => cargarCursosPorMateria(materia.codigo)}
-                className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-sm cursor-pointer transition-all"
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm cursor-pointer transition-all bg-white dark:bg-gray-800"
               >
-                <h3 className="font-semibold text-gray-800 mb-1">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-1">
                   {materia.nombre}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Código: {materia.codigo}
                   {materia.creditos && ` · ${materia.creditos} créditos`}
                 </p>

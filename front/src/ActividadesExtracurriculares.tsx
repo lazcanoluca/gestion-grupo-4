@@ -48,11 +48,11 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
   };
 
   const initialHorariosSet = new Set<string>(
-        horariosExcluidosIniciales.map(h => generarKey(h.dia, h.hora_inicio, h.hora_fin))
-    );
-    
+    horariosExcluidosIniciales.map(h => generarKey(h.dia, h.hora_inicio, h.hora_fin))
+  );
+
   const [horariosSeleccionados, setHorariosSeleccionados] = useState<Set<string>>(
-      initialHorariosSet
+    initialHorariosSet
   );
 
   const toggleDia = (diaId: number) => {
@@ -101,11 +101,11 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           Selecciona los horarios que no quieres ocupar
         </p>
         {horariosSeleccionados.size > 0 && (
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+          <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 px-2 py-1 rounded-full">
             {horariosSeleccionados.size} bloqueados
           </span>
         )}
@@ -117,17 +117,16 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
           const horariosCount = contarHorariosDia(dia.id);
 
           return (
-            <div key={dia.id} className="border rounded-lg overflow-hidden">
+            <div key={dia.id} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               {/* Header del día */}
               <button
                 onClick={() => toggleDia(dia.id)}
-                className="w-full px-3 py-2 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between transition-colors text-gray-800 dark:text-gray-100"
               >
                 <div className="flex items-center gap-2">
                   <svg
-                    className={`w-4 h-4 transition-transform ${
-                      isExpanded ? "rotate-90" : ""
-                    }`}
+                    className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-90" : ""
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -143,7 +142,7 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
                 </div>
 
                 {horariosCount > 0 && (
-                  <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-200 px-2 py-0.5 rounded-full">
                     {horariosCount}
                   </span>
                 )}
@@ -151,7 +150,7 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
 
               {/* Lista de horarios */}
               {isExpanded && (
-                <div className="p-2 bg-white space-y-1">
+                <div className="p-2 bg-white dark:bg-gray-900 space-y-1">
                   {HORARIOS_DIA.map((horario) => {
                     const key = generarKey(dia.id, horario.inicio, horario.fin);
                     const isSelected = horariosSeleccionados.has(key);
@@ -159,11 +158,10 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
                     return (
                       <label
                         key={key}
-                        className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors ${
-                          isSelected
-                            ? "bg-red-50 hover:bg-red-100"
-                            : "hover:bg-gray-50"
-                        }`}
+                        className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors ${isSelected
+                            ? "bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-800/40"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                          }`}
                       >
                         <input
                           type="checkbox"
@@ -173,7 +171,7 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
                           }
                           className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
                         />
-                        <span className="text-sm">
+                        <span className="text-sm text-gray-800 dark:text-gray-100">
                           {horario.inicio} - {horario.fin}
                         </span>
                       </label>
