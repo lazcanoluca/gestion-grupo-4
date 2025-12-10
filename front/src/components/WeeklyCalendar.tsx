@@ -197,17 +197,16 @@ export function WeeklyCalendar({
     if (horaInicio !== horaActual) return null
 
     const duracionMinutos = horaFin * 60 + minutoFin - (horaInicio * 60 + minutoInicio)
-    const alturaBase = (window.innerHeight - 250) / 16
-    const alturaPx = (duracionMinutos / 60) * alturaBase
-    const offsetTop = (minutoInicio / 60) * alturaBase
+    const duracionHoras = duracionMinutos / 60
+    const offsetHoras = minutoInicio / 60
 
     return (
       <div
         key={`blocked-${horario.dia}-${horario.hora_inicio}`}
         className="absolute left-0 right-0 mx-1 rounded-lg border-2 border-red-400 bg-red-50/80 p-2 overflow-hidden shadow-sm z-5"
         style={{
-          top: `${offsetTop}px`,
-          height: `${alturaPx}px`,
+          top: `${offsetHoras * 100}%`,
+          height: `${duracionHoras * 100}%`,
           backgroundImage:
             'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(239, 68, 68, 0.1) 10px, rgba(239, 68, 68, 0.1) 20px)',
         }}
@@ -239,9 +238,8 @@ export function WeeklyCalendar({
     if (horaInicio !== horaActual) return null
 
     const duracionMinutos = horaFin * 60 + minutoFin - (horaInicio * 60 + minutoInicio)
-    const alturaBase = (window.innerHeight - 250) / 16
-    const alturaPx = (duracionMinutos / 60) * alturaBase
-    const offsetTop = (minutoInicio / 60) * alturaBase
+    const duracionHoras = duracionMinutos / 60
+    const offsetHoras = minutoInicio / 60
 
     const color = coloresPorMateria[curso.materia.codigo] || COLORES_MATERIAS[0]
     const claseId = `${curso.codigo}-${clase.dia}-${clase.hora_inicio}`
@@ -256,8 +254,8 @@ export function WeeklyCalendar({
         data-clase-card
         className={`absolute left-0 right-0 mx-1 rounded-lg border-2 ${color} overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10 group`}
         style={{
-          top: `${offsetTop}px`,
-          height: `${alturaPx}px`,
+          top: `${offsetHoras * 100}%`,
+          height: `${duracionHoras * 100}%`,
         }}
         onMouseEnter={(e) => {
           const rect = e.currentTarget.getBoundingClientRect()
