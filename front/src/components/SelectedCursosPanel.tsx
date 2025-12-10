@@ -75,7 +75,7 @@ export function SelectedCursosPanel({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMostrarAyuda(!mostrarAyuda)}
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
+            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm cursor-pointer"
             aria-label="Ayuda sobre prioridades"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +107,7 @@ export function SelectedCursosPanel({
           <div className="mb-3">
             <button
               onClick={() => setMostrarPanel(!mostrarPanel)}
-              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
             >
               <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                 {mostrarPanel ? 'Ocultar' : 'Ver'} cursos y prioridades
@@ -151,7 +151,7 @@ export function SelectedCursosPanel({
                       setPrioridades(nuevasPrioridades)
                       onPrioridadesChange?.(nuevasPrioridades)
                     }}
-                    className="flex-1 text-xs py-1.5 px-2 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 rounded hover:bg-yellow-200 dark:hover:bg-yellow-800/50 transition-colors font-medium"
+                    className="flex-1 text-xs py-1.5 px-2 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200 rounded hover:bg-yellow-200 dark:hover:bg-yellow-800/50 transition-colors font-medium cursor-pointer"
                   >
                     Todas media
                   </button>
@@ -175,7 +175,7 @@ export function SelectedCursosPanel({
                           </div>
                           <button
                             onClick={() => onRemove(curso.codigo)}
-                            className="text-gray-400 dark:text-gray-500 hover:text-red-600 ml-2 flex-shrink-0"
+                            className="text-gray-400 dark:text-gray-500 hover:text-red-600 ml-2 flex-shrink-0 cursor-pointer"
                             aria-label="Eliminar curso"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,7 +194,7 @@ export function SelectedCursosPanel({
                                 <button
                                   key={nivel}
                                   onClick={() => actualizarPrioridad(curso.codigo, nivel)}
-                                  className={`px-2 py-0.5 text-xs rounded transition-all ${isSelected
+                                  className={`px-2 py-0.5 text-xs rounded transition-all cursor-pointer ${isSelected
                                     ? 'bg-blue-600 text-white font-semibold shadow-sm'
                                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                                     }`}
@@ -242,7 +242,7 @@ export function SelectedCursosPanel({
       <button
         onClick={handleGenerarPlanes}
         disabled={!hayCursos}
-        className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all ${hayCursos
+        className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all cursor-pointer disabled:cursor-not-allowed ${hayCursos
           ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
           : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
           }`}

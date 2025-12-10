@@ -252,7 +252,7 @@ export function WeeklyCalendar({
       <div
         key={claseId}
         data-clase-card
-        className={`absolute left-0 right-0 mx-1 rounded-lg border-2 ${color} overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10 group`}
+        className={`absolute left-0 right-0 mx-1 rounded-lg border-2 ${color} overflow-hidden shadow-sm transition-shadow z-10 group`}
         style={{
           top: `${offsetHoras * 100}%`,
           height: `${duracionHoras * 100}%`,
@@ -397,9 +397,9 @@ export function WeeklyCalendar({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setPlanSeleccionado(index)}
-                      className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-all ${planSeleccionado === index
-                          ? 'bg-blue-500 text-white shadow-md'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-all cursor-pointer ${planSeleccionado === index
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                         }`}
                     >
                       Plan {index + 1}
@@ -420,9 +420,9 @@ export function WeeklyCalendar({
                         }
                       }}
                       data-info-btn
-                      className={`p-1.5 rounded-full transition-all ${planSeleccionado === index
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      className={`p-1.5 rounded-full transition-all cursor-pointer ${planSeleccionado === index
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                         } ${tooltipAbierto === index ? 'ring-2 ring-blue-400' : ''}`}
                       title="Ver análisis del plan"
                     >

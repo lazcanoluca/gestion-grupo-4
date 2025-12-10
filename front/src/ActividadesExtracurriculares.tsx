@@ -121,7 +121,7 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
               {/* Header del día */}
               <button
                 onClick={() => toggleDia(dia.id)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between transition-colors text-gray-800 dark:text-gray-100"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between transition-colors text-gray-800 dark:text-gray-100 cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <svg
@@ -159,8 +159,8 @@ export function ActividadesExtracurriculares({ horariosExcluidosIniciales, onHor
                       <label
                         key={key}
                         className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors ${isSelected
-                            ? "bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-800/40"
-                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                          ? "bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-800/40"
+                          : "hover:bg-gray-50 dark:hover:bg-gray-800"
                           }`}
                       >
                         <input

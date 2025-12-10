@@ -120,7 +120,7 @@ export default function PantallaSeleccion({
               id="sede-select"
               value={sedePreferida}
               onChange={(e) => setSedePreferida(e.target.value)}
-              className="w-full border dark:border-gray-600 rounded px-2 py-1 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              className="w-full border dark:border-gray-600 rounded px-2 py-1 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 cursor-pointer"
             >
               <option value="ANY">Cualquiera</option>
               <option value="PC">Paseo Colón</option>
@@ -140,7 +140,7 @@ export default function PantallaSeleccion({
               id="modalidad-select"
               value={modalidadPreferida}
               onChange={(e) => setModalidadPreferida(e.target.value)}
-              className="w-full border dark:border-gray-600 rounded px-2 py-1 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              className="w-full border dark:border-gray-600 rounded px-2 py-1 mt-1 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 cursor-pointer"
             >
               <option value="ANY">Cualquiera</option>
               <option value="presencial">Presencial</option>
