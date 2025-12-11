@@ -43,7 +43,7 @@ export function GeneradorPlanes({ cursosSeleccionados, onVolverAlBuscador, onSel
   const generarPlanes = async () => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       const response = await fetch('http://localhost:5000/api/scheduler/generar-planes', {
         method: 'POST',
@@ -60,7 +60,7 @@ export function GeneradorPlanes({ cursosSeleccionados, onVolverAlBuscador, onSel
       }
 
       const data = await response.json()
-      
+
       if (data.success) {
         const planesConId = data.planes.map((cursos: Curso[], index: number) => ({
           cursos,
@@ -96,7 +96,7 @@ export function GeneradorPlanes({ cursosSeleccionados, onVolverAlBuscador, onSel
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={onVolverAlBuscador}
-          className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
+          className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -105,12 +105,12 @@ export function GeneradorPlanes({ cursosSeleccionados, onVolverAlBuscador, onSel
         </button>
       </div>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+      <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
         Generador de Planes
       </h2>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-        <p className="text-sm text-blue-800">
+      <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+        <p className="text-sm text-blue-800 dark:text-blue-100">
           <strong>{cursosSeleccionados.length}</strong> cursos seleccionados
         </p>
       </div>
@@ -132,23 +132,23 @@ export function GeneradorPlanes({ cursosSeleccionados, onVolverAlBuscador, onSel
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-800 dark:text-red-200">
           {error}
         </div>
       )}
 
       {estadisticas && planes.length > 0 && (
         <div className="mb-4 space-y-2">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm text-green-800 font-semibold">
+          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <p className="text-sm text-green-800 dark:text-green-100 font-semibold">
               ✅ {estadisticas.mensaje}
             </p>
-            <div className="mt-2 space-y-1 text-xs text-green-700">
+            <div className="mt-2 space-y-1 text-xs text-green-700 dark:text-green-200">
               <p>• Máximo de materias: {estadisticas.max_materias_simultaneas}</p>
               <p>• Mínimo de materias: {estadisticas.min_materias_simultaneas}</p>
               <p>• Promedio: {estadisticas.promedio_materias} materias</p>
               {estadisticas.cursos_nunca_usados && estadisticas.cursos_nunca_usados.length > 0 && (
-                <p className="text-yellow-700 mt-2">
+                <p className="text-yellow-700 dark:text-yellow-200 mt-2">
                   ⚠️ {estadisticas.cursos_nunca_usados.length} curso(s) no aparecen en ningún plan (se solapan con todos)
                 </p>
               )}
@@ -172,39 +172,38 @@ export function GeneradorPlanes({ cursosSeleccionados, onVolverAlBuscador, onSel
             <div
               key={plan.id}
               onClick={() => setPlanSeleccionado(plan.id)}
-              className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                planSeleccionado === plan.id
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-              }`}
+              className={`border rounded-lg p-4 cursor-pointer transition-all ${planSeleccionado === plan.id
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
+                }`}
             >
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-800">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-100">
                   Plan {plan.id + 1}
                 </h3>
-                <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                <span className="text-sm text-gray-600 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
                   {plan.cursos.length} {plan.cursos.length === 1 ? 'materia' : 'materias'}
                 </span>
               </div>
 
               <div className="space-y-3">
                 {plan.cursos.map((curso) => (
-                  <div key={curso.codigo} className="bg-white rounded-lg p-3 border border-gray-100">
-                    <div className="font-medium text-gray-800 mb-1">
+                  <div key={curso.codigo} className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+                    <div className="font-medium text-gray-800 dark:text-gray-100 mb-1">
                       {curso.materia.nombre}
                     </div>
-                    <div className="text-sm text-gray-600 mb-2">
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">
                       Curso {curso.numero_curso}
                       {curso.catedra && ` - ${curso.catedra}`}
                     </div>
-                    
+
                     <div className="space-y-1">
                       {curso.clases.map((clase, idx) => (
-                        <div key={idx} className="text-xs text-gray-500 flex items-center gap-2">
+                        <div key={idx} className="text-xs text-gray-500 dark:text-gray-300 flex items-center gap-2">
                           <span className="font-medium">{DIAS_SEMANA[clase.dia]}:</span>
                           <span>{formatearHora(clase.hora_inicio)} - {formatearHora(clase.hora_fin)}</span>
                           {clase.tipo && (
-                            <span className="bg-gray-100 px-2 py-0.5 rounded">
+                            <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">
                               {clase.tipo}
                             </span>
                           )}

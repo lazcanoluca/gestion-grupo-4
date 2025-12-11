@@ -90,8 +90,8 @@ function TooltipAnalisis({ analisis }: { analisis: Analisis }) {
 
   return (
     <div className="w-full p-4 max-h-96 overflow-y-auto">
-      <div className="mb-4 text-center pb-3 border-b border-gray-200">
-        <div className="text-sm text-gray-600 mb-1">Puntuación del Plan</div>
+      <div className="mb-4 text-center pb-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="text-sm text-gray-600 dark:text-gray-200 mb-1">Puntuación del Plan</div>
         <div className={`text-3xl font-bold ${getScoreColor(analisis.score)}`}>
           {analisis.score}/100
         </div>
@@ -99,7 +99,7 @@ function TooltipAnalisis({ analisis }: { analisis: Analisis }) {
 
       {analisis.ventajas.length > 0 && (
         <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mb-2 flex items-center gap-2">
             <span className="text-green-600">✓</span>
             Ventajas
           </h4>
@@ -119,7 +119,7 @@ function TooltipAnalisis({ analisis }: { analisis: Analisis }) {
 
       {analisis.desventajas.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-100 mb-2 flex items-center gap-2">
             <span className="text-red-600">⚠</span>
             Desventajas
           </h4>
@@ -138,7 +138,7 @@ function TooltipAnalisis({ analisis }: { analisis: Analisis }) {
       )}
 
       {analisis.ventajas.length === 0 && analisis.desventajas.length === 0 && (
-        <div className="text-center text-gray-500 text-sm py-4">
+        <div className="text-center text-gray-500 dark:text-gray-300 text-sm py-4">
           No hay análisis disponible para este plan
         </div>
       )}
@@ -252,7 +252,7 @@ export function WeeklyCalendar({
       <div
         key={claseId}
         data-clase-card
-        className={`absolute left-0 right-0 mx-1 rounded-lg border-2 ${color} overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10 group`}
+        className={`absolute left-0 right-0 mx-1 rounded-lg border-2 ${color} overflow-hidden shadow-sm transition-shadow z-10 group`}
         style={{
           top: `${offsetHoras * 100}%`,
           height: `${duracionHoras * 100}%`,
@@ -397,7 +397,7 @@ export function WeeklyCalendar({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setPlanSeleccionado(index)}
-                      className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-all ${planSeleccionado === index
+                      className={`px-4 py-2 rounded-t-lg font-medium text-sm whitespace-nowrap transition-all cursor-pointer ${planSeleccionado === index
                         ? 'bg-blue-500 text-white shadow-md'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                         }`}
@@ -420,7 +420,7 @@ export function WeeklyCalendar({
                         }
                       }}
                       data-info-btn
-                      className={`p-1.5 rounded-full transition-all ${planSeleccionado === index
+                      className={`p-1.5 rounded-full transition-all cursor-pointer ${planSeleccionado === index
                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                         } ${tooltipAbierto === index ? 'ring-2 ring-blue-400' : ''}`}
@@ -448,13 +448,13 @@ export function WeeklyCalendar({
         <div
           data-tooltip
           onClick={(e) => e.stopPropagation()}
-          className="fixed rounded-xl shadow-2xl bg-white/95 backdrop-blur-md tooltip-animate max-w-sm w-[22rem] border border-gray-200 z-[99999] p-1"
+          className="fixed rounded-xl shadow-2xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md tooltip-animate max-w-sm w-[22rem] border border-gray-200 dark:border-gray-700 z-[99999] p-1"
           style={{
             top: `${tooltipPosition.top}px`,
             left: `${tooltipPosition.left}px`,
           }}
         >
-          <div className="absolute -top-2 left-6 w-4 h-4 bg-white/95 backdrop-blur-md rotate-45 border-l border-t border-gray-200"></div>
+          <div className="absolute -top-2 left-6 w-4 h-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rotate-45 border-l border-t border-gray-200 dark:border-gray-700"></div>
 
           <TooltipAnalisis
             analisis={
